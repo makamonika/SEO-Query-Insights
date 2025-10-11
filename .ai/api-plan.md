@@ -137,8 +137,6 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
 | POST | `/ai/clusters:generate` | Run K-means clustering on latest data |
 | GET | `/ai/clusters/suggestions` | Fetch current suggestions (ephemeral) |
 | POST | `/ai/clusters/{suggestId}:accept` | Persist suggestion as real group(s) |
-| PATCH | `/ai/clusters/{suggestId}` | Edit (rename / add / remove queries) before accept |
-| DELETE | `/ai/clusters/{suggestId}` | Discard suggestion |
 
 Responses mirror the `groups` shape for consistency. Accepting inserts into `groups`, `group_items`, and `user_actions` (`cluster_accepted`).
 
