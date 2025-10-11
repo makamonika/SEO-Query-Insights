@@ -89,10 +89,7 @@ export type GetQueriesRequestDto = {
   offset?: number;
 };
 
-export type GetQueriesResponseDto = {
-  data: QueryDto[];
-  meta: PaginationMeta;
-};
+export type GetQueriesResponseDto = QueryDto[];
 
 // ============================================================================
 // 3. Import DTOs
