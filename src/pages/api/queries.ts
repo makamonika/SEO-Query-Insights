@@ -1,33 +1,9 @@
 import type { APIRoute } from "astro";
-import { z } from "zod";
 
 import type { GetQueriesResponseDto, ErrorResponse } from "../../types";
 import { QUERIES_COLUMNS } from "../../lib/db/projections";
-import { QUERY_SORT_FIELDS, SORT_ORDERS } from "../../types";
 import type { Tables } from "../../db/database.types";
-
-/**
- * Validation schema for GET /queries query parameters
- * Implements strict validation with defaults and constraints per implementation plan
- */
-const QueryParamsSchema = z
-  .object({
-    search: z.string().trim().min(1).optional(),
-    isOpportunity: z
-      .union([z.boolean(), z.enum(["true", "false"])])
-      .optional()
-      .transform((v) => (typeof v === "string" ? v === "true" : v)),
-    sortBy: z.enum(QUERY_SORT_FIELDS).default("impressions"),
-    order: z.enum(SORT_ORDERS).optional(),
-    limit: z.coerce.number().int().min(1).max(1000).default(50),
-    offset: z.coerce.number().int().min(0).default(0),
-  })
-  .transform((input) => {
-    // Apply conditional default for order based on sortBy
-    const sortBy = input.sortBy ?? "impressions";
-    const order = input.order ?? (sortBy === "impressions" ? "desc" : "asc");
-    return { ...input, sortBy, order };
-  });
+import { queryParamsSchema } from "./_schemas/query";
 
 /**
  * Transforms database record (snake_case) to DTO (camelCase)
@@ -66,7 +42,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
   try {
     // Step 1: Parse and validate query parameters
     const rawParams = Object.fromEntries(url.searchParams.entries());
-    const parseResult = QueryParamsSchema.safeParse(rawParams);
+    const parseResult = queryParamsSchema.safeParse(rawParams);
 
     if (!parseResult.success) {
       const errorResponse: ErrorResponse = {
