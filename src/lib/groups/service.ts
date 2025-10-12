@@ -62,7 +62,7 @@ export async function createGroup(
   if (name.length === 0) {
     throw new Error('Group name cannot be empty');
   }
-  await assertUniqueGroupName(supabase, userId, name);
+   await assertUniqueGroupName(supabase, userId, name);
 
   const { data, error } = await supabase
     .from('groups')
