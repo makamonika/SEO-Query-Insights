@@ -139,12 +139,12 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
 
 | Method | Path | Description |
 |--------|------|-------------|
-| GET | `/ai/clusters` | Generate and return clustering suggestions (on-demand) |
-| POST | `/ai/clusters/accept` | Persist clusters as real group(s) |
+| GET | `/ai-clusters` | Generate and return clustering suggestions (on-demand) |
+| POST | `/ai-clusters/accept` | Persist clusters as real group(s) |
 
 #### Behavior & Payloads (MVP)
 
-- `GET /ai/clusters`
+- `GET /ai-clusters`
   - Success 200:
   ```json
   [
@@ -159,7 +159,7 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
   - Side effects: Log `user_actions` with `action_type = cluster_generated`.
   - Notes: Suggestions are not stored server-side; returned directly to client.
 
-- `POST /ai/clusters/accept`
+- `POST /ai-clusters/accept`
   - Body: `{ "clusters": [{ "name": "string", "queryTexts": ["..."] }] }` (allows rename and subset selection before commit)
   - Success 200: 
   ```json
@@ -179,7 +179,7 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
 
 Notes:
 - Suggestions are stateless and never persisted server-side. Only accepted clusters are saved as user groups.
-- Server sets `Cache-Control: no-store` for `/ai/clusters` to avoid caching of compute-heavy responses.
+- Server sets `Cache-Control: no-store` for `/ai-clusters` to avoid caching of compute-heavy responses.
 - Rate limiting still applies (3 requests/min for generation endpoint).
 
 ---
@@ -234,7 +234,7 @@ All endpoints require service-role JWT.
 | Feature | Implementation |
 |---------|---------------|
 | **Opportunity detection** | During import: `isOpportunity = impressions > 1000 AND ctr < 0.01 AND 5 ≤ avgPosition ≤ 15`. Flag stored in DB; clients filter via `isOpportunity` param. |
-| **AI clustering** | `GET /ai/clusters` fetches latest `queries`, embeds text, runs K-means **on-demand**, and returns suggestions in the same response. Suggestions are **stateless** and not persisted server-side; when the client accepts clusters via `POST /ai/clusters/accept`, they are saved as groups with `ai_generated = true` |
+| **AI clustering** | `GET /ai-clusters` fetches latest `queries`, embeds text, runs K-means **on-demand**, and returns suggestions in the same response. Suggestions are **stateless** and not persisted server-side; when the client accepts clusters via `POST /ai-clusters/accept`, they are saved as groups with `ai_generated = true` |
 | **AI cluster actions logging** | `user_actions` logs `cluster_generated` and `cluster_accepted` with relevant metadata (cluster counts, query counts). |
 | **Aggregated metrics** | `/groups/{id}` and `/groups` compute metrics on-the-fly via SQL JOIN on latest date. |
 | **User actions logging** | Middleware records significant events (login, import, cluster actions, group CRUD) into `user_actions`. |

@@ -1,20 +1,20 @@
-import type { APIRoute } from 'astro';
-import type { ErrorResponse, AiClusterSuggestionDto } from '../../../../types';
-import { generateClusters } from '../../../../lib/ai-clusters/service';
+import type { APIRoute } from "astro";
+import type { ErrorResponse, AiClusterSuggestionDto } from "../../../types";
+import { generateClusters } from "../../../lib/ai-clusters/service";
 
 /**
- * GET /api/ai/clusters
+ * GET /api/ai-clusters
  * Generates AI clustering suggestions on-demand and returns them to the client.
  * Suggestions are stateless and not persisted server-side.
  *
  * Response: Array of AiClusterSuggestionDto
- * 
+ *
  * Authentication is skipped for now per instructions; a placeholder userId is used.
  */
 
 export const GET: APIRoute = async ({ locals }) => {
   // TODO: Replace with real auth once available
-  const userId = 'temp-user-id';
+  const userId = "temp-user-id";
 
   try {
     const clusters = await generateClusters(locals.supabase, userId);
@@ -22,22 +22,21 @@ export const GET: APIRoute = async ({ locals }) => {
     return new Response(JSON.stringify(clusters satisfies AiClusterSuggestionDto[]), {
       status: 200,
       headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-store', // Prevent caching of compute-heavy AI responses
+        "Content-Type": "application/json",
+        "Cache-Control": "no-store", // Prevent caching of compute-heavy AI responses
       },
     });
   } catch (error) {
-    console.error('[ai/clusters][GET] Unexpected error:', error);
+    console.error("[ai-clusters][GET] Unexpected error:", error);
     const errorResponse: ErrorResponse = {
       error: {
-        code: 'internal',
-        message: 'Failed to generate clusters',
+        code: "internal",
+        message: "Failed to generate clusters",
       },
     };
     return new Response(JSON.stringify(errorResponse), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 };
-
