@@ -88,6 +88,7 @@ The SEO Query Insights Dashboard addresses these challenges by providing a centr
 - FR-18: The system shall maintain query groups as private to each user
 - FR-19: The system shall display aggregated metrics for each query group
 - FR-20: The system shall visualize query groups as lists/cards with group name, query count, and metrics
+  - Sorting (MVP): Users can sort groups by name or created date (ascending/descending).
 
 ### 3.4 AI-Assisted Clustering
 

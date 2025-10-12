@@ -111,6 +111,11 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
 }
 ```
 
+#### Basic sorting (MVP)
+
+- Supported params: `sortBy` in `name | createdAt` (default: `createdAt`), `order` in `asc | desc` (default: `desc`).
+- Example: `/groups?sortBy=name&order=asc`.
+
 ##### Errors
 `400` validation, `404` not found, `403` forbidden (not owner).
 
