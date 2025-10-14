@@ -28,7 +28,7 @@ import { runImport } from "../../lib/imports/service";
 /**
  * POST handler for import endpoint
  */
-export const POST: APIRoute = async ({ locals, request }) => {
+export const POST: APIRoute = async ({ locals }) => {
   const startTime = Date.now();
 
   // TODO: Step 2 - Authentication (skipped for now as per user request)
@@ -134,11 +134,11 @@ export const POST: APIRoute = async ({ locals, request }) => {
 /**
  * Import result from service layer
  */
-type ImportResult = {
+interface ImportResult {
   success: boolean;
   rowCount: number;
   error?: string;
-};
+}
 
 /**
  * Runs the import with a strict timeout

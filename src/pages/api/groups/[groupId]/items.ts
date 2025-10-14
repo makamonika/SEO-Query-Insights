@@ -2,7 +2,7 @@ import type { APIRoute } from "astro";
 import type { ErrorResponse } from "../../../../types";
 import { pathParamsSchema } from "../../_schemas/group";
 import { addItemsBodySchema } from "../../_schemas/groupItem";
-import { addGroupItems, GroupNotFoundError } from "../../../../lib/group-items/items.service";
+import { addGroupItems, GroupNotFoundError } from "../../../../lib/group-items/service";
 
 /**
  * POST /api/groups/:groupId/items
