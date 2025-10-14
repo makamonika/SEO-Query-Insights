@@ -3,6 +3,8 @@ import type { ErrorResponse } from "../../../types";
 import { pathParamsSchema, updateGroupSchema } from "../_schemas/group";
 import { getGroupById, updateGroup, deleteGroup, DuplicateGroupNameError } from "../../../lib/groups/service";
 
+export const prerender = false;
+
 /**
  * GET /api/groups/:groupId
  * PATCH /api/groups/:groupId

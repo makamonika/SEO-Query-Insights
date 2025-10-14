@@ -3,6 +3,7 @@ import type { ErrorResponse } from "../../../../../types";
 import { deleteItemParamsSchema } from "../../../_schemas/groupItem";
 import { removeGroupItem, GroupNotFoundError } from "../../../../../lib/group-items/service";
 
+export const prerender = false;
 /**
  * DELETE /api/groups/:groupId/items/:queryText
  *

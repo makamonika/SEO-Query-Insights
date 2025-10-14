@@ -2,6 +2,7 @@ import type { APIRoute } from "astro";
 import type { ErrorResponse, AiClusterSuggestionDto } from "../../../types";
 import { generateClusters } from "../../../lib/ai-clusters/service";
 
+export const prerender = false;
 /**
  * GET /api/ai-clusters
  * Generates AI clustering suggestions on-demand and returns them to the client.

@@ -4,6 +4,8 @@ import { pathParamsSchema } from "../../_schemas/group";
 import { addItemsBodySchema } from "../../_schemas/groupItem";
 import { addGroupItems, GroupNotFoundError } from "../../../../lib/group-items/service";
 
+export const prerender = false;
+
 /**
  * POST /api/groups/:groupId/items
  *

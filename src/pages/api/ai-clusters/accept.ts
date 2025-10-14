@@ -3,6 +3,7 @@ import type { ErrorResponse, AcceptClustersResponseDto } from "../../../types";
 import { acceptClustersRequestSchema } from "../_schemas/aiCluster";
 import { acceptClusters } from "../../../lib/ai-clusters/service";
 
+export const prerender = false;
 /**
  * POST /api/ai-clusters/accept
  * Accepts AI cluster suggestions and persists them as groups with ai_generated = true.

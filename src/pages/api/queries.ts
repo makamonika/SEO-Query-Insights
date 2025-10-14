@@ -5,6 +5,8 @@ import { QUERIES_COLUMNS } from "../../lib/db/projections";
 import type { Tables } from "../../db/database.types";
 import { queryParamsSchema } from "./_schemas/query";
 
+export const prerender = false;
+
 /**
  * Transforms database record (snake_case) to DTO (camelCase)
  */

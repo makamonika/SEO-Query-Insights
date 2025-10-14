@@ -3,6 +3,8 @@ import type { ErrorResponse, GetGroupsResponseDto, GroupWithMetricsDto } from ".
 import { groupListQuerySchema, createGroupSchema } from "../_schemas/group";
 import { listGroups, createGroup, DuplicateGroupNameError } from "../../../lib/groups/service";
 
+export const prerender = false;
+
 /**
  * GET /api/groups
  * Lists groups owned by the current user with basic metrics scaffold.

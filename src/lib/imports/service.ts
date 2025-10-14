@@ -16,23 +16,23 @@ import { ImportConfig } from "./config";
  * Represents metrics for a specific URL + query combination
  * Note: CTR is calculated from clicks/impressions, not provided in source data
  */
-export type GscDataRecord = {
+export interface GscDataRecord {
   date: string; // ISO date string (YYYY-MM-DD)
   query: string; // Search query text
   url: string; // Landing page URL
   impressions: number;
   clicks: number;
   avg_position: number; // Average position (1-based)
-};
+}
 
 /**
  * Result of an import operation
  */
-export type ImportServiceResult = {
+export interface ImportServiceResult {
   success: boolean;
   rowCount: number;
   error?: string;
-};
+}
 
 /**
  * Computes whether a query represents an SEO opportunity
@@ -73,8 +73,13 @@ export function transformGscRecord(record: GscDataRecord): TablesInsert<"queries
     throw new Error("Missing required fields: date, query, or url");
   }
 
-  // Validate date format (YYYY-MM-DD)
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(record.date)) {
+  // Normalize date format (handle both YYYY-MM-DD and ISO 8601 datetime)
+  let normalizedDate = record.date;
+  if (/^\d{4}-\d{2}-\d{2}T/.test(record.date)) {
+    // Extract date part from ISO 8601 datetime (YYYY-MM-DDTHH:mm:ss.sssZ)
+    normalizedDate = record.date.split("T")[0];
+  } else if (!/^\d{4}-\d{2}-\d{2}$/.test(record.date)) {
+    // Validate date format if not ISO datetime
     throw new Error(`Invalid date format: ${record.date}`);
   }
 
@@ -85,23 +90,37 @@ export function transformGscRecord(record: GscDataRecord): TablesInsert<"queries
   if (typeof record.clicks !== "number" || record.clicks < 0) {
     throw new Error("Invalid clicks value");
   }
-  if (typeof record.avg_position !== "number" || record.avg_position < 1) {
-    throw new Error("Invalid avg_position value (must be >= 1)");
+  if (typeof record.avg_position !== "number" || record.avg_position < 0) {
+    throw new Error("Invalid avg_position value (must be >= 0)");
   }
 
   // Calculate CTR from clicks and impressions
   const ctr = calculateCtr(record.clicks, record.impressions);
 
+  // Round CTR to 2 decimal places (good enough for display)
+  const roundedCtr = Math.round(ctr * 100) / 100;
+
+  // Round avg_position to 2 decimal places to fit numeric(7,2)
+  const roundedPosition = Math.round(record.avg_position * 100) / 100;
+
+  // Validate that rounded values fit in database constraints
+  if (roundedCtr > 1) {
+    throw new Error(`CTR value ${roundedCtr} exceeds maximum of 1.0`);
+  }
+  if (roundedPosition > 99999.99) {
+    throw new Error(`Position value ${roundedPosition} exceeds maximum of 99999.99`);
+  }
+
   // Transform to database schema
   return {
-    date: record.date,
+    date: normalizedDate,
     query_text: record.query.toLowerCase(), // Store lowercase for consistency
     url: record.url,
     impressions: record.impressions,
     clicks: record.clicks,
-    ctr,
-    avg_position: record.avg_position,
-    is_opportunity: computeIsOpportunity(record.impressions, ctr, record.avg_position),
+    ctr: roundedCtr,
+    avg_position: roundedPosition,
+    is_opportunity: computeIsOpportunity(record.impressions, roundedCtr, roundedPosition),
   };
 }
 
@@ -237,6 +256,7 @@ export async function runImport(
         // Log validation error but continue processing other records
         const errorMsg = error instanceof Error ? error.message : "Unknown error";
         errors.push(`Record ${i}: ${errorMsg}`);
+        console.log(`Validation error: ${errorMsg}`);
 
         // Stop if too many errors (more than 10% of records)
         if (errors.length > rawRecords.length * 0.1) {
@@ -251,6 +271,8 @@ export async function runImport(
 
     // Step 3: Batch insert into database
     // Note: Data provider handles deduplication, so we insert all transformed records
+    // Log sample record for debugging
+
     const rowCount = await batchInsertRecords(supabase, transformedRecords, ImportConfig.BATCH_SIZE);
 
     return {
