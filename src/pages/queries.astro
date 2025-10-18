@@ -1,0 +1,10 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { QueriesPage } from "@/components/queries/QueriesPage";
+
+export const prerender = false;
+---
+
+<Layout title="Query Performance Dashboard">
+  <QueriesPage client:visible />
+</Layout>

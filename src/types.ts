@@ -89,6 +89,18 @@ export type GetQueriesRequestDto = {
 
 export type GetQueriesResponseDto = QueryDto[];
 
+/**
+ * View model for queries list with pagination metadata
+ */
+export type GetQueriesResponseView = {
+  rows: QueryDto[];
+  meta: {
+    total: number;
+    limit: number;
+    offset: number;
+  };
+};
+
 // ============================================================================
 // 3. Import DTOs
 // ============================================================================

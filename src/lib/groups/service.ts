@@ -28,17 +28,20 @@ function mapGroupRowToDto(row: GroupRow): GroupWithMetricsDto {
 export async function listGroups(
   supabase: SupabaseClient<Database>,
   userId: string,
-  opts: { limit: number; offset: number; sortBy?: "name" | "createdAt" | "aiGenerated"; order?: "asc" | "desc"; search?: string }
+  opts: {
+    limit: number;
+    offset: number;
+    sortBy?: "name" | "createdAt" | "aiGenerated";
+    order?: "asc" | "desc";
+    search?: string;
+  }
 ): Promise<GroupWithMetricsDto[]> {
   // Fetch groups owned by the user; metrics aggregation to be added next
   // Map sort fields to DB columns
   const sortColumn = opts.sortBy === "name" ? "name" : opts.sortBy === "aiGenerated" ? "ai_generated" : "created_at";
   const ascending = (opts.order ?? "desc") === "asc";
 
-  let query = supabase
-    .from("groups")
-    .select("*")
-    .eq("user_id", userId);
+  let query = supabase.from("groups").select("*").eq("user_id", userId);
 
   // Apply search filter if provided
   if (opts.search && opts.search.trim().length > 0) {
