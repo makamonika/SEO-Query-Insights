@@ -8,22 +8,22 @@ import { pathParamsSchema } from "./group";
 
 /**
  * Request body for adding items to a group
- * - queryTexts: array of 1-500 strings
- * - each string trimmed, min 1 char
+ * - queryIds: array of 1-500 UUID strings
+ * - each UUID must be valid
  */
 export const addItemsBodySchema = z.object({
-  queryTexts: z
-    .array(z.string().trim().min(1, "Query text cannot be empty"))
-    .min(1, "At least one query text is required")
+  queryIds: z
+    .array(z.string().uuid("Invalid query ID format"))
+    .min(1, "At least one query ID is required")
     .max(500, "Cannot add more than 500 items at once"),
 });
 
 /**
  * Path parameters for deleting a specific item
- * - queryText: non-empty string (will be URL-decoded and normalized)
+ * - queryId: valid UUID string
  */
 export const deleteItemParamsSchema = pathParamsSchema.extend({
-  queryText: z.string().trim().min(1, "Query text cannot be empty"),
+  queryId: z.string().uuid("Invalid query ID format"),
 });
 
 export type AddItemsBodyInput = z.infer<typeof addItemsBodySchema>;

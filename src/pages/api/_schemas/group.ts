@@ -8,6 +8,7 @@ import { z } from "zod";
 export const createGroupSchema = z.object({
   name: z.string().trim().min(1, "name is required").max(100),
   aiGenerated: z.boolean().optional().default(false),
+  queryIds: z.array(z.string().uuid("Invalid query ID format")).optional().default([]),
 });
 
 export const updateGroupSchema = z

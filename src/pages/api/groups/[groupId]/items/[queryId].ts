@@ -5,20 +5,19 @@ import { removeGroupItem, GroupNotFoundError } from "../../../../../lib/group-it
 
 export const prerender = false;
 /**
- * DELETE /api/groups/:groupId/items/:queryText
+ * DELETE /api/groups/:groupId/items/:queryId
  *
- * Remove a single query text from a group.
- * Query text is URL-decoded and normalized to lowercase.
+ * Remove a single query from a group by query ID.
  *
  * Authentication is skipped for now per instructions; a placeholder userId is used.
  */
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  const userId = "76d5ed57-8598-4b97-9c1e-4dac1e1c74ce";
+  const userId = "95f925a0-a5b9-47c2-b403-b29a9a66e88b";
 
   // Validate path params
   const parsedParams = deleteItemParamsSchema.safeParse({
     groupId: params.groupId,
-    queryText: params.queryText,
+    queryId: params.queryId,
   });
 
   if (!parsedParams.success) {
@@ -41,14 +40,14 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
       locals.supabase,
       userId,
       parsedParams.data.groupId,
-      parsedParams.data.queryText
+      parsedParams.data.queryId
     );
 
     if (!result.removed) {
       const errorResponse: ErrorResponse = {
         error: {
           code: "not_found",
-          message: "Query text not found in group",
+          message: "Query not found in group",
         },
       };
       return new Response(JSON.stringify(errorResponse), {
@@ -87,3 +86,4 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     });
   }
 };
+
