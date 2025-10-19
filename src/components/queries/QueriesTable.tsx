@@ -17,6 +17,8 @@ type QueriesTableProps = {
   onSortChange: (params: { sortBy: QuerySortField; order: SortOrder }) => void;
   // Optional custom action column
   renderActions?: (row: QueryDto) => ReactNode;
+  // Optional custom height (defaults to 600px)
+  height?: string;
 };
 
 export const QueriesTable = memo(function QueriesTable({
@@ -29,6 +31,7 @@ export const QueriesTable = memo(function QueriesTable({
   onToggleRow,
   onSortChange,
   renderActions,
+  height = "600px",
 }: QueriesTableProps) {
   const parentRef = useRef<HTMLDivElement>(null);
 
@@ -135,7 +138,8 @@ export const QueriesTable = memo(function QueriesTable({
       <div
         ref={parentRef}
         id="queries-grid"
-        className="h-[600px] overflow-auto"
+        className="overflow-auto"
+        style={{ height }}
         role="grid"
         aria-label="Query performance data"
       >

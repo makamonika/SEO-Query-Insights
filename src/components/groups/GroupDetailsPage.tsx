@@ -1,14 +1,15 @@
 import { useState, useMemo, useCallback } from "react";
 import { useGroup } from "@/hooks/useGroups";
-import { useGroupItems, useRemoveGroupItem } from "@/hooks/useGroupItems";
+import { useGroupItems, useRemoveGroupItem, useAddGroupItems } from "@/hooks/useGroupItems";
 import { useGroupActions } from "@/hooks/useGroupActions";
 import { EditableHeader } from "./EditableHeader";
 import { MetricsSummary } from "./MetricsSummary";
 import { QueriesTable } from "@/components/queries/QueriesTable";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { AddQueriesToGroupModal } from "./AddQueriesToGroupModal";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
-import { ArrowLeftIcon, Trash2Icon } from "lucide-react";
+import { ArrowLeftIcon, Trash2Icon, PlusIcon } from "lucide-react";
 import { LiveRegion } from "@/components/queries/LiveRegion";
 import type { QuerySortField, SortOrder } from "@/types";
 
@@ -28,6 +29,7 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
     queryId?: string;
     queryText?: string;
   }>({ open: false, type: "delete-group" });
+  const [addQueriesModalOpen, setAddQueriesModalOpen] = useState(false);
 
   // Sorting state for member queries table
   const [sortBy, setSortBy] = useState<QuerySortField>("impressions");
@@ -62,6 +64,9 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
 
   // Remove query from group
   const { removeItem, removingQueryId } = useRemoveGroupItem();
+
+  // Add queries to group
+  const { addItems, isLoading: isAddingItems } = useAddGroupItems();
 
   // Sort members client-side
   const sortedMembers = useMemo(() => {
@@ -146,6 +151,27 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
     }
   };
 
+  // Handle add queries
+  const handleAddQueries = async (queryIds: string[]) => {
+    try {
+      await addItems(groupId, queryIds);
+      // Refresh both members list and group metrics
+      refetchMembers();
+      refetchGroup();
+      setAddQueriesModalOpen(false);
+      setLiveMessage(`Added ${queryIds.length} ${queryIds.length === 1 ? "query" : "queries"} to group`);
+    } catch (err) {
+      // Error already handled by hook with toast
+      setLiveMessage(`Failed to add queries to group`);
+      throw err; // Re-throw to prevent modal from closing
+    }
+  };
+
+  // Create a set of existing query IDs for the modal
+  const existingQueryIds = useMemo(() => {
+    return new Set(members.map((m) => m.id));
+  }, [members]);
+
   // Loading state
   if (isLoadingGroup) {
     return (
@@ -221,7 +247,13 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
 
         {/* Member Queries Table */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Member Queries ({meta.total})</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Member Queries ({meta.total})</h2>
+            <Button onClick={() => setAddQueriesModalOpen(true)} disabled={isAddingItems}>
+              <PlusIcon />
+              Add Queries
+            </Button>
+          </div>
           <QueriesTable
             rows={sortedMembers}
             isLoading={isLoadingMembers}
@@ -275,6 +307,16 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
         variant="destructive"
         onConfirm={confirmRemoveQuery}
         onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+      />
+
+      {/* Add Queries Modal */}
+      <AddQueriesToGroupModal
+        open={addQueriesModalOpen}
+        onOpenChange={setAddQueriesModalOpen}
+        onAdd={handleAddQueries}
+        isSubmitting={isAddingItems}
+        existingQueryIds={existingQueryIds}
+        groupName={group.name}
       />
 
       <LiveRegion message={liveMessage} />

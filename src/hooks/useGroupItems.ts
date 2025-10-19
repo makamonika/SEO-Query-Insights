@@ -88,6 +88,71 @@ export function useGroupItems(groupId: string, params?: UseGroupItemsParams) {
 }
 
 /**
+ * Custom hook to add queries to a group
+ * @returns Mutation function, loading state, and error
+ */
+export function useAddGroupItems() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const addItems = async (groupId: string, queryIds: string[]): Promise<{ addedCount: number }> => {
+    if (!queryIds.length) {
+      throw new Error("No queries selected");
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`/api/groups/${encodeURIComponent(groupId)}/items`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ queryIds }),
+      });
+
+      if (!response.ok) {
+        const errorData: ErrorResponse = await response.json();
+        if (errorData.error.code === "not_found") {
+          throw new Error("Group not found");
+        }
+        throw new Error(errorData.error.message || "Failed to add queries to group");
+      }
+
+      const result = await response.json();
+
+      // Show appropriate success message
+      if (result.addedCount === 0) {
+        toast.info("All selected queries were already in the group");
+      } else if (result.addedCount === queryIds.length) {
+        toast.success(`Added ${result.addedCount} ${result.addedCount === 1 ? "query" : "queries"} to group`);
+      } else {
+        toast.success(
+          `Added ${result.addedCount} ${result.addedCount === 1 ? "query" : "queries"} to group`,
+          {
+            description: `${queryIds.length - result.addedCount} ${queryIds.length - result.addedCount === 1 ? "was" : "were"} already in the group`,
+          }
+        );
+      }
+
+      return result;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Unknown error");
+      setError(error);
+      toast.error("Failed to add queries", {
+        description: error.message,
+      });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { addItems, isLoading, error };
+}
+
+/**
  * Custom hook to remove a query from a group
  * @returns Mutation function, loading state, and error
  */
