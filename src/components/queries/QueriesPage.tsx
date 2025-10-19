@@ -1,14 +1,17 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { PageHeader } from "./PageHeader";
 import { QueriesTableWithControls } from "./QueriesTableWithControls";
 import { LiveRegion } from "./LiveRegion";
+import { CreateGroupModal } from "@/components/groups/CreateGroupModal";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useQueries } from "@/hooks/useQueries";
 import { useSelection } from "@/hooks/useSelection";
 import { useImport } from "@/hooks/useImport";
 import { useImportStatus } from "@/hooks/useImportStatus";
-import type { QuerySortField, SortOrder } from "@/types";
+import { useAIClusters } from "@/hooks/useAIClusters";
+import { useGroupActions } from "@/hooks/useGroupActions";
+import type { QuerySortField, SortOrder, CreateGroupRequestDto } from "@/types";
 
 export function QueriesPage() {
   // Live region for accessibility announcements
@@ -24,7 +27,6 @@ export function QueriesPage() {
 
   // Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   // Debounce search input
   const debouncedSearch = useDebouncedValue(search, 300);
@@ -49,6 +51,17 @@ export function QueriesPage() {
 
   // Import management - separated from main component logic
   const { isImporting, lastImportAt, hasFailed, handleImport, setLastImportAt } = useImport(refetch, setLiveMessage);
+
+  // AI cluster generation
+  const { isGeneratingAI, handleGenerateAI } = useAIClusters({
+    setLiveMessage,
+  });
+
+  // Group actions (create group)
+  const { isCreatingGroup, createGroupError, handleCreate, clearCreateError } = useGroupActions({
+    refetch,
+    setLiveMessage,
+  });
 
   // Fetch initial import status on mount
   const importStatus = useImportStatus();
@@ -78,48 +91,34 @@ export function QueriesPage() {
   );
 
   const handleOpenNewGroup = useCallback(() => {
-    setIsCreateModalOpen(true);
-  }, []);
-
-  const handleGenerateAI = useCallback(async () => {
-    setIsGeneratingAI(true);
-    setLiveMessage("Generating AI clusters...");
-
-    try {
-      const response = await fetch("/api/ai-clusters");
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error("Authentication required", {
-            description: "Redirecting to login...",
-          });
-          setTimeout(() => {
-            window.location.href = "/login?returnUrl=" + encodeURIComponent(window.location.pathname);
-          }, 1000);
-          return;
-        }
-        throw new Error(`Failed to generate clusters: ${response.statusText}`);
-      }
-
-      const suggestions = await response.json();
-      const successMsg = `Generated ${suggestions.length} cluster suggestions`;
-      toast.success("AI Clusters Generated", {
-        description: successMsg,
+    if (selected.size === 0) {
+      toast.error("No queries selected", {
+        description: "Please select at least one query to create a group",
       });
-      setLiveMessage(successMsg);
-
-      // TODO: Navigate to /ai-clusters with suggestions in state
-      console.log("AI Clusters generated:", suggestions);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
-      toast.error("Failed to generate AI clusters", {
-        description: message,
-      });
-      setLiveMessage(`Failed to generate clusters: ${message}`);
-    } finally {
-      setIsGeneratingAI(false);
+      return;
     }
-  }, []);
+    setIsCreateModalOpen(true);
+    clearCreateError();
+  }, [selected.size, clearCreateError]);
+
+  const handleCreateGroup = useCallback(
+    async (payload: CreateGroupRequestDto) => {
+      const queryTexts = Array.from(selected);
+      const success = await handleCreate(payload, queryTexts);
+
+      if (success) {
+        // Close modal and clear selection on success
+        setIsCreateModalOpen(false);
+        clearSelection();
+      }
+    },
+    [selected, handleCreate, clearSelection]
+  );
+
+  // Get selected query texts for modal display
+  const selectedQueryTexts = useMemo(() => {
+    return queries.filter((q) => selected.has(q.id)).map((q) => q.queryText);
+  }, [queries, selected]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -157,7 +156,14 @@ export function QueriesPage() {
           </div>
         )}
 
-        {/* TODO: Add GroupCreateModal */}
+        <CreateGroupModal
+          open={isCreateModalOpen}
+          onOpenChange={setIsCreateModalOpen}
+          onCreate={handleCreateGroup}
+          isSubmitting={isCreatingGroup}
+          error={createGroupError}
+          queryTexts={selectedQueryTexts}
+        />
       </div>
 
       <LiveRegion message={liveMessage} />

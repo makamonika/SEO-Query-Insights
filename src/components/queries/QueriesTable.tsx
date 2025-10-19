@@ -1,9 +1,10 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef, memo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { TableEmptyState } from "@/components/ui/table-empty-state";
 import { OpportunityBadge } from "./OpportunityBadge";
+import { formatNumber, formatCTR, getSortIcon, getNextSortState } from "@/lib/table-utils.tsx";
 import type { QueryDto, QuerySortField, SortOrder } from "@/types";
-import { ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
 type QueriesTableProps = {
   rows: QueryDto[];
@@ -34,48 +35,17 @@ export const QueriesTable = memo(function QueriesTable({
   });
 
   const handleColumnHeaderClick = (field: QuerySortField) => {
-    if (sortBy === field) {
-      // Toggle order if same field
-      onSortChange({ sortBy: field, order: order === "asc" ? "desc" : "asc" });
-    } else {
-      // Default order for new field
-      const defaultOrder = field === "avgPosition" ? "asc" : "desc";
-      onSortChange({ sortBy: field, order: defaultOrder });
-    }
-  };
-
-  const getSortIcon = (field: QuerySortField) => {
-    if (sortBy !== field) {
-      return <ArrowUpDown className="ml-1 h-3 w-3 opacity-50" />;
-    }
-    return order === "asc" ? <ArrowUp className="ml-1 h-3 w-3" /> : <ArrowDown className="ml-1 h-3 w-3" />;
-  };
-
-  const formatNumber = (num: number, decimals: number = 0) => {
-    return num.toLocaleString(undefined, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    });
-  };
-
-  const formatCTR = (ctr: number) => {
-    return `${(ctr * 100).toFixed(2)}%`;
+    const defaultOrder = field === "avgPosition" ? "asc" : "desc";
+    const nextState = getNextSortState(sortBy, order, field, defaultOrder);
+    onSortChange(nextState);
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <p className="text-muted-foreground">Loading queries...</p>
-      </div>
-    );
+    return <TableEmptyState message="Loading queries..." />;
   }
 
   if (rows.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <p className="text-muted-foreground">No queries found</p>
-      </div>
-    );
+    return <TableEmptyState message="No queries found" />;
   }
 
   return (
@@ -93,7 +63,7 @@ export const QueriesTable = memo(function QueriesTable({
           aria-sort={sortBy === "impressions" ? (order === "asc" ? "ascending" : "descending") : "none"}
         >
           Query Text
-          {sortBy === "impressions" && getSortIcon("impressions")}
+          {sortBy === "impressions" && getSortIcon(sortBy === "impressions", order)}
         </button>
         <div role="columnheader">URL</div>
         <button
@@ -104,7 +74,7 @@ export const QueriesTable = memo(function QueriesTable({
           aria-sort={sortBy === "impressions" ? (order === "asc" ? "ascending" : "descending") : "none"}
         >
           Impressions
-          {getSortIcon("impressions")}
+          {getSortIcon(sortBy === "impressions", order)}
         </button>
         <button
           type="button"
@@ -114,7 +84,7 @@ export const QueriesTable = memo(function QueriesTable({
           aria-sort={sortBy === "clicks" ? (order === "asc" ? "ascending" : "descending") : "none"}
         >
           Clicks
-          {getSortIcon("clicks")}
+          {getSortIcon(sortBy === "clicks", order)}
         </button>
         <button
           type="button"
@@ -124,7 +94,7 @@ export const QueriesTable = memo(function QueriesTable({
           aria-sort={sortBy === "ctr" ? (order === "asc" ? "ascending" : "descending") : "none"}
         >
           CTR
-          {getSortIcon("ctr")}
+          {getSortIcon(sortBy === "ctr", order)}
         </button>
         <button
           type="button"
@@ -134,7 +104,7 @@ export const QueriesTable = memo(function QueriesTable({
           aria-sort={sortBy === "avgPosition" ? (order === "asc" ? "ascending" : "descending") : "none"}
         >
           Avg Position
-          {getSortIcon("avgPosition")}
+          {getSortIcon(sortBy === "avgPosition", order)}
         </button>
         <div role="columnheader">Opportunity</div>
       </div>

@@ -1,8 +1,5 @@
 import { QueriesTable } from "./QueriesTable";
-import { SearchInput } from "./SearchInput";
-import { OpportunityToggle } from "./OpportunityToggle";
-import { GroupWithAIButton } from "./GroupWithAIButton";
-import { NewGroupButton } from "./NewGroupButton";
+import { QueriesToolbar } from "./QueriesToolbar";
 import type { QueryDto, QuerySortField, SortOrder } from "@/types";
 
 type QueriesTableWithControlsProps = {
@@ -58,20 +55,16 @@ export function QueriesTableWithControls({
     <div className="space-y-4">
       {/* Controls bar - only show when there's data or active filters */}
       {showControls && (
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          {/* Left: Search and filters */}
-          <div className="flex flex-wrap items-center gap-4">
-            <SearchInput value={search} onChange={onSearchChange} />
-            <OpportunityToggle checked={isOpportunity} onChange={onOpportunityToggle} />
-          </div>
-
-          {/* Right: Actions */}
-          <div className="flex items-center gap-2">
-            {selected.size > 0 && <span className="text-sm text-muted-foreground mr-2">{selected.size} selected</span>}
-            <GroupWithAIButton onGenerate={onGenerateAI} isGenerating={isGeneratingAI} />
-            <NewGroupButton onClick={onOpenNewGroup} />
-          </div>
-        </div>
+        <QueriesToolbar
+          search={search}
+          isOpportunity={isOpportunity}
+          onSearchChange={onSearchChange}
+          onOpportunityToggle={onOpportunityToggle}
+          selectedCount={selected.size}
+          onOpenNewGroup={onOpenNewGroup}
+          onGenerateAI={onGenerateAI}
+          isGeneratingAI={isGeneratingAI}
+        />
       )}
 
       {/* Table */}
