@@ -20,7 +20,7 @@ export const prerender = false;
 
 export const POST: APIRoute = async ({ locals, request }) => {
   // TODO: Replace with real auth once available
-  const userId = "temp-user-id";
+  const userId = "76d5ed57-8598-4b97-9c1e-4dac1e1c74ce";
 
   try {
     // Parse request body

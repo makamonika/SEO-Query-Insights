@@ -16,7 +16,7 @@ export const prerender = false;
  * Authentication is skipped for now per instructions; a placeholder userId is used.
  */
 export const POST: APIRoute = async ({ params, request, locals }) => {
-  const userId = "temp-user-id";
+  const userId = "76d5ed57-8598-4b97-9c1e-4dac1e1c74ce";
 
   // Validate path params
   const parsedParams = pathParamsSchema.safeParse({ groupId: params.groupId });

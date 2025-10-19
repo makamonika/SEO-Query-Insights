@@ -13,7 +13,7 @@ export const prerender = false;
  * Authentication is skipped for now per instructions; a placeholder userId is used.
  */
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  const userId = "temp-user-id";
+  const userId = "76d5ed57-8598-4b97-9c1e-4dac1e1c74ce";
 
   // Validate path params
   const parsedParams = deleteItemParamsSchema.safeParse({

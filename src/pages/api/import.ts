@@ -40,7 +40,7 @@ export const POST: APIRoute = async ({ locals }) => {
   // const userId = user.id;
 
   // For MVP, using a placeholder userId
-  const userId = "temp-user-id";
+  const userId = "76d5ed57-8598-4b97-9c1e-4dac1e1c74ce";
 
   try {
     // Generate unique import ID for tracking

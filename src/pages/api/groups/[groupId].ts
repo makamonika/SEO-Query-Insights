@@ -14,7 +14,7 @@ export const prerender = false;
  */
 
 export const GET: APIRoute = async ({ params, locals }) => {
-  const userId = "temp-user-id";
+  const userId = "76d5ed57-8598-4b97-9c1e-4dac1e1c74ce";
   const parsed = pathParamsSchema.safeParse({ groupId: params.groupId });
   if (!parsed.success) {
     const errorResponse: ErrorResponse = {
@@ -47,7 +47,7 @@ export const GET: APIRoute = async ({ params, locals }) => {
 };
 
 export const PATCH: APIRoute = async ({ params, request, locals }) => {
-  const userId = "temp-user-id";
+  const userId = "76d5ed57-8598-4b97-9c1e-4dac1e1c74ce";
   const parsedParams = pathParamsSchema.safeParse({ groupId: params.groupId });
   if (!parsedParams.success) {
     const errorResponse: ErrorResponse = {
@@ -111,7 +111,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
 };
 
 export const DELETE: APIRoute = async ({ params, locals }) => {
-  const userId = "temp-user-id";
+  const userId = "76d5ed57-8598-4b97-9c1e-4dac1e1c74ce";
   const parsed = pathParamsSchema.safeParse({ groupId: params.groupId });
   if (!parsed.success) {
     const errorResponse: ErrorResponse = {
