@@ -76,22 +76,22 @@ Stores user-created query groups (both manual and AI-generated).
 
 ### 1.4 group_items
 
-Junction table linking groups to query texts (normalized).
+Junction table linking groups to specific query records via foreign key.
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | id | uuid | PRIMARY KEY DEFAULT gen_random_uuid() | Unique identifier |
 | group_id | uuid | NOT NULL REFERENCES groups(id) ON DELETE CASCADE | Reference to parent group |
-| query_text | text | NOT NULL | Normalized query text (lowercase) |
+| query_id | uuid | NOT NULL REFERENCES queries(id) ON DELETE CASCADE | Reference to specific query record |
 | added_at | timestamptz | NOT NULL DEFAULT now() | Timestamp when query was added to group |
 
 **Constraints:**
-- UNIQUE (group_id, lower(query_text))
+- UNIQUE (group_id, query_id)
 
 **Notes:**
-- `query_text` should be stored in lowercase for consistency
-- Groups attach to query text only, not specific URLs
-- Aggregated metrics computed on-the-fly by joining with `queries` table
+- Groups reference specific query records (unique combination of query_text + url + date)
+- Foreign key ensures referential integrity - group items are automatically removed when queries are deleted
+- Aggregated metrics computed on-the-fly by joining with `queries` table via foreign key relationship
 
 ---
 
@@ -131,17 +131,23 @@ Tracks user actions for analytics and success metrics.
 - On Delete: CASCADE (delete user's actions when user is deleted)
 
 **groups → group_items**
-- Cardinality: One group can contain many query texts
+- Cardinality: One group can contain many query records
 - Foreign Key: `group_items.group_id` → `groups.id`
 - On Delete: CASCADE (delete group items when group is deleted)
 
-### 2.2 Implicit Relationships
+**queries → group_items**
+- Cardinality: One query can be in many groups
+- Foreign Key: `group_items.query_id` → `queries.id`
+- On Delete: CASCADE (delete group items when query is deleted)
 
-**group_items ⟷ queries**
-- Relationship: Group items reference query texts that exist in queries table
-- Join condition: `lower(group_items.query_text) = lower(queries.query_text)`
-- Note: No foreign key constraint; soft relationship via query text matching
-- Aggregations computed by joining on latest date: `queries.date = (SELECT MAX(date) FROM queries)`
+### 2.2 Many-to-Many Relationship
+
+**groups ⟷ queries (via group_items)**
+- Relationship: Many-to-many relationship between groups and queries
+- Junction table: `group_items`
+- A group can contain many queries
+- A query can belong to many groups
+- Aggregations computed by joining via foreign key relationships
 
 ---
 
@@ -202,14 +208,18 @@ CREATE INDEX idx_groups_user_created ON groups(user_id, created_at DESC);
 CREATE INDEX idx_group_items_pkey ON group_items(id);
 
 -- Unique constraint index (automatic)
-CREATE UNIQUE INDEX idx_group_items_unique_group_query ON group_items(group_id, lower(query_text));
+CREATE UNIQUE INDEX idx_group_items_unique_group_query ON group_items(group_id, query_id);
 
 -- Foreign key index for group lookups
 CREATE INDEX idx_group_items_group_id ON group_items(group_id);
 
--- Index for query text lookups (joining with queries)
-CREATE INDEX idx_group_items_query_text ON group_items(lower(query_text));
+-- Foreign key index for query lookups
+CREATE INDEX idx_group_items_query_id ON group_items(query_id);
 ```
+
+**Notes:**
+- Both foreign key columns are indexed for efficient lookups in both directions
+- Unique constraint prevents duplicate queries in the same group
 
 ### 3.5 user_actions table
 

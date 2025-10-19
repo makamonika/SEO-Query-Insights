@@ -193,7 +193,7 @@ export type GroupItemDto = CamelCaseKeys<Tables<"group_items">>;
  * Command model for adding queries to a group
  */
 export type AddGroupItemsRequestDto = {
-  queryTexts: string[];
+  queryIds: string[];
 };
 
 // ============================================================================
@@ -207,18 +207,18 @@ export type AddGroupItemsRequestDto = {
  */
 export type AiClusterSuggestionDto = {
   name: string;
-  queryTexts: string[];
+  queryIds: string[];
   queryCount: number;
   metrics: GroupMetricsDto;
 };
 
 /**
  * Single cluster to accept (subset of the original suggestion)
- * The client can edit name and filter queryTexts before accepting
+ * The client can edit name and filter queryIds before accepting
  */
 export type AcceptClusterDto = {
   name: string;
-  queryTexts: string[];
+  queryIds: string[];
 };
 
 /**

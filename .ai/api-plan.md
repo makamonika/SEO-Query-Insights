@@ -8,7 +8,7 @@
 | `queries` | `queries` | Daily GSC query metrics (shared dataset) |
 | `imports` | *n/a* (writes to `queries`) | Trigger manual GSC data import |
 | `groups` | `groups` | Manual & AI-generated query groups (per-user) |
-| `groupItems` | `group_items` | Query texts attached to a group |
+| `groupItems` | `group_items` | Query records (by ID) attached to a group via foreign key |
 | `aiClusters` | *n/a* (writes to `groups` & `group_items`) | Stateless AI clustering suggestions (not persisted server-side); acceptance writes to `groups` & `group_items` |
 | `userActions` | `user_actions` | Analytics trail of user actions |
 
@@ -97,7 +97,11 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
 
 #### POST `/groups` body
 ```json
-{ "name": "Topical Cluster", "aiGenerated": false }
+{ 
+  "name": "Topical Cluster", 
+  "aiGenerated": false,
+  "queryIds": ["uuid-1", "uuid-2"]  // optional: queries to add to group on creation
+}
 ```
 
 #### Aggregated metrics response snippet
@@ -135,13 +139,17 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
 
 | Method | Path | Description |
 |--------|------|-------------|
+| GET | `/groups/{groupId}/items` | Get all queries in a group |
 | POST | `/groups/{groupId}/items` | Add one or many queries to group |
-| DELETE | `/groups/{groupId}/items/{queryText}` | Remove query from group |
+| DELETE | `/groups/{groupId}/items/{queryId}` | Remove query from group |
 
 #### POST body
 ```json
-{ "queryTexts": ["query a", "query b"] }
+{ "queryIds": ["uuid-1", "uuid-2"] }
 ```
+
+#### GET response
+Returns array of full query objects (QueryDto[]) that are members of the group, ordered by impressions descending.
 
 ---
 
@@ -160,7 +168,7 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
   [
     {
       "name": "Topic A",
-      "queryTexts": ["query a", "query b"],
+      "queryIds": ["uuid-1", "uuid-2"],
       "queryCount": 2,
       "metrics": { "impressions": 12345, "clicks": 67, "ctr": 0.0054, "avgPosition": 8.2 }
     }
@@ -170,7 +178,7 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
   - Notes: Suggestions are not stored server-side; returned directly to client.
 
 - `POST /ai-clusters/accept`
-  - Body: `{ "clusters": [{ "name": "string", "queryTexts": ["..."] }] }` (allows rename and subset selection before commit)
+  - Body: `{ "clusters": [{ "name": "string", "queryIds": ["uuid-1", "uuid-2"] }] }` (allows rename and subset selection before commit)
   - Success 200: 
   ```json
   {
@@ -185,7 +193,7 @@ All subsequent endpoints require header `Authorization: Bearer <accessToken>`.
     ]
   }
   ```
-  - Side effects: Insert into `groups` with `ai_generated = true`, insert into `group_items`; log `user_actions` with `action_type = cluster_accepted`.
+  - Side effects: Insert into `groups` with `ai_generated = true`, insert into `group_items` with foreign key references to query IDs; log `user_actions` with `action_type = cluster_accepted`.
 
 Notes:
 - Suggestions are stateless and never persisted server-side. Only accepted clusters are saved as user groups.
@@ -237,7 +245,7 @@ All endpoints require service-role JWT.
 | `queries.ctr` | `0 ≤ ctr ≤ 1` | `422` |
 | `queries.avgPosition` | `>= 0` | `422` |
 | `groups.name` | non-empty, trimmed | `422` |
-| `group_items.queryText` | lower-cased, non-empty | `422` |
+| `group_items.queryId` | valid UUID, must reference existing query | `422` |
 
 ### 4.2 Business Logic
 
