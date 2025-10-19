@@ -79,9 +79,12 @@ export function GroupsPage() {
   );
 
   // Pagination handlers - now receive offset values from Pagination component
-  const handlePageChange = useCallback((newOffset: number) => {
-    setCurrentPage(Math.floor(newOffset / pageSize) + 1);
-  }, [pageSize]);
+  const handlePageChange = useCallback(
+    (newOffset: number) => {
+      setCurrentPage(Math.floor(newOffset / pageSize) + 1);
+    },
+    [pageSize]
+  );
 
   const handlePageSizeChange = useCallback((newLimit: number) => {
     setPageSize(newLimit);

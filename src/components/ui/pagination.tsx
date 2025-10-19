@@ -18,7 +18,7 @@ export interface PaginationProps {
 /**
  * Pagination component with page navigation and optional page size selector
  * Follows accessibility best practices with ARIA labels and keyboard navigation
- * 
+ *
  * Uses PaginationMeta type for consistency with API responses.
  * Internally converts between offset/limit (API) and page numbers (UI).
  */
@@ -30,11 +30,11 @@ export function Pagination({
   isLoading = false,
 }: PaginationProps) {
   const { total, limit, offset } = meta;
-  
+
   // Convert offset/limit to page numbers for UI
   const currentPage = Math.floor(offset / limit) + 1;
   const totalPages = Math.ceil(total / limit);
-  
+
   const startItem = total === 0 ? 0 : offset + 1;
   const endItem = Math.min(offset + limit, total);
 
@@ -106,8 +106,7 @@ export function Pagination({
       {/* Left side: Items info and page size selector */}
       <div className="flex items-center gap-4">
         <div className="text-sm text-muted-foreground">
-          Showing <span className="font-medium">{startItem}</span> to{" "}
-          <span className="font-medium">{endItem}</span> of{" "}
+          Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{" "}
           <span className="font-medium">{total}</span> results
         </div>
 
@@ -210,4 +209,3 @@ export function Pagination({
     </div>
   );
 }
-

@@ -23,11 +23,11 @@ export function QueriesPage() {
   const [isOpportunity, setIsOpportunity] = useState<boolean>();
   const [sortBy, setSortBy] = useState<QuerySortField>("impressions");
   const [order, setOrder] = useState<SortOrder>("desc");
-  
+
   // Pagination state
   const [pageSize, setPageSize] = useState(50);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   // Calculate offset from current page
   const offset = (currentPage - 1) * pageSize;
 
@@ -101,9 +101,12 @@ export function QueriesPage() {
   );
 
   // Pagination handlers - now receive offset values from Pagination component
-  const handlePageChange = useCallback((newOffset: number) => {
-    setCurrentPage(Math.floor(newOffset / pageSize) + 1);
-  }, [pageSize]);
+  const handlePageChange = useCallback(
+    (newOffset: number) => {
+      setCurrentPage(Math.floor(newOffset / pageSize) + 1);
+    },
+    [pageSize]
+  );
 
   const handlePageSizeChange = useCallback((newLimit: number) => {
     setPageSize(newLimit);

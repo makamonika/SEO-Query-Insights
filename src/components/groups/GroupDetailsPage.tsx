@@ -28,7 +28,7 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
     queryId?: string;
     queryText?: string;
   }>({ open: false, type: "delete-group" });
-  
+
   // Sorting state for member queries table
   const [sortBy, setSortBy] = useState<QuerySortField>("impressions");
   const [order, setOrder] = useState<SortOrder>("desc");
@@ -95,9 +95,12 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
   );
 
   // Pagination handlers - now receive offset values from Pagination component
-  const handlePageChange = useCallback((newOffset: number) => {
-    setCurrentPage(Math.floor(newOffset / pageSize) + 1);
-  }, [pageSize]);
+  const handlePageChange = useCallback(
+    (newOffset: number) => {
+      setCurrentPage(Math.floor(newOffset / pageSize) + 1);
+    },
+    [pageSize]
+  );
 
   const handlePageSizeChange = useCallback((newLimit: number) => {
     setPageSize(newLimit);
