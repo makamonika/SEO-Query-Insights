@@ -1,0 +1,11 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { GroupsPage } from "@/components/groups/GroupsPage";
+
+export const prerender = false;
+---
+
+<Layout title="Groups Management">
+  <GroupsPage client:visible />
+</Layout>
+
