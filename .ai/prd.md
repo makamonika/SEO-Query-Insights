@@ -84,6 +84,7 @@ The SEO Query Insights Dashboard addresses these challenges by providing a centr
 - FR-14: The system shall allow users to create custom query groups
 - FR-15: The system shall allow users to name and rename query groups
 - FR-16: The system shall allow users to add and remove queries from groups
+  - Technical note: Groups reference specific query records (unique combination of query_text + url + date) via foreign key relationships
 - FR-17: The system shall allow users to delete groups
 - FR-18: The system shall maintain query groups as private to each user
 - FR-19: The system shall display aggregated metrics for each query group
@@ -99,7 +100,7 @@ The SEO Query Insights Dashboard addresses these challenges by providing a centr
 - FR-25: The system shall display performance metrics for each AI-generated cluster
 - FR-26: The system shall handle queries in different languages as distinct entities
 - FR-27: (MVP persistence policy): AI-suggested clusters are ephemeral and are not persisted to the database unless the user accepts them
-- FR-28: (MVP persistence policy): When a cluster is accepted, it is saved as a private user group with its queries; discarded clusters are not saved, but accept and discard actions are logged for analytics
+- FR-28: (MVP persistence policy): When a cluster is accepted, it is saved as a private user group with references to specific query records via foreign keys; discarded clusters are not saved, but accept and discard actions are logged for analytics
 
 ### 3.5 Opportunity Detection
 
