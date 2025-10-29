@@ -1,8 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { PencilIcon, CheckIcon, XIcon, Trash2Icon, SparklesIcon } from "lucide-react";
+import { useInlineNameEdit } from "@/hooks/useInlineNameEdit";
 
 export interface EditableHeaderProps {
   name: string;
@@ -18,15 +19,14 @@ export interface EditableHeaderProps {
  * Handles validation: non-empty, max length, no change detection
  */
 export function EditableHeader({ name, aiGenerated, isSaving, isDeleting, onRename, onDelete }: EditableHeaderProps) {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState(name);
-  const [error, setError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Sync edited name when prop changes
-  useEffect(() => {
-    setEditedName(name);
-  }, [name]);
+  // Use shared inline name editing hook
+  const { isEditing, editedName, error, startEdit, cancelEdit, saveEdit, setEditedName } = useInlineNameEdit({
+    initialName: name,
+    onSave: onRename,
+    maxLength: 120,
+  });
 
   // Auto-focus input when entering edit mode
   useEffect(() => {
@@ -35,45 +35,6 @@ export function EditableHeader({ name, aiGenerated, isSaving, isDeleting, onRena
       inputRef.current.select();
     }
   }, [isEditing]);
-
-  const handleEdit = () => {
-    setIsEditing(true);
-    setError(null);
-  };
-
-  const handleCancel = () => {
-    setEditedName(name);
-    setIsEditing(false);
-    setError(null);
-  };
-
-  const handleSave = async () => {
-    const trimmedName = editedName.trim();
-
-    // Validation: non-empty
-    if (!trimmedName) {
-      setError("Group name cannot be empty");
-      return;
-    }
-
-    // Validation: no change
-    if (trimmedName === name) {
-      setIsEditing(false);
-      setError(null);
-      return;
-    }
-
-    try {
-      await onRename(trimmedName);
-      setIsEditing(false);
-      setError(null);
-    } catch (err) {
-      // Error is already handled by the hook with toast
-      // Keep edit mode open so user can correct the name
-      const message = err instanceof Error ? err.message : "Failed to rename group";
-      setError(message);
-    }
-  };
 
   return (
     <div className="flex items-start justify-between gap-4 mb-6">
@@ -93,19 +54,13 @@ export function EditableHeader({ name, aiGenerated, isSaving, isDeleting, onRena
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={handleSave}
+                onClick={saveEdit}
                 disabled={isSaving || !editedName.trim() || editedName.trim() === name}
                 aria-label="Save group name"
               >
                 <CheckIcon />
               </Button>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={handleCancel}
-                disabled={isSaving}
-                aria-label="Cancel editing"
-              >
+              <Button size="icon" variant="ghost" onClick={cancelEdit} disabled={isSaving} aria-label="Cancel editing">
                 <XIcon />
               </Button>
             </div>
@@ -127,7 +82,7 @@ export function EditableHeader({ name, aiGenerated, isSaving, isDeleting, onRena
             <Button
               size="icon"
               variant="ghost"
-              onClick={handleEdit}
+              onClick={startEdit}
               disabled={isSaving || isDeleting}
               aria-label="Edit group name"
             >

@@ -11,6 +11,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, Trash2Icon, PlusIcon } from "lucide-react";
 import { LiveRegion } from "@/components/queries/LiveRegion";
+import { sortQueries } from "@/lib/query-sorting";
 import type { QuerySortField, SortOrder } from "@/types";
 
 export interface GroupDetailsPageProps {
@@ -68,25 +69,9 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
   // Add queries to group
   const { addItems, isLoading: isAddingItems } = useAddGroupItems();
 
-  // Sort members client-side
+  // Sort members client-side using shared sorting logic
   const sortedMembers = useMemo(() => {
-    const sorted = [...members];
-    sorted.sort((a, b) => {
-      const aVal = a[sortBy];
-      const bVal = b[sortBy];
-
-      // Handle string sorting (for queryText, url)
-      if (typeof aVal === "string" && typeof bVal === "string") {
-        return order === "asc"
-          ? (aVal as string).localeCompare(bVal as string)
-          : (bVal as string).localeCompare(aVal as string);
-      }
-
-      // Handle number sorting
-      const diff = (aVal as number) - (bVal as number);
-      return order === "asc" ? diff : -diff;
-    });
-    return sorted;
+    return sortQueries(members, sortBy, order);
   }, [members, sortBy, order]);
 
   // Handle sort change
