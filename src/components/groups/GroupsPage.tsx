@@ -61,6 +61,7 @@ export function GroupsPage() {
   // AI cluster generation
   const { isGeneratingAI, handleGenerateAI } = useAIClusters({
     setLiveMessage,
+    navigateToAIClusters: true, // Navigate to AI clusters page after generation
   });
 
   // Toolbar handlers - memoized to prevent unnecessary re-renders

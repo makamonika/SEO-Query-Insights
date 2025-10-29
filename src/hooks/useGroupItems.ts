@@ -14,7 +14,11 @@ export interface UseGroupItemsParams extends PaginationParams {
  */
 export function useGroupItems(groupId: string, params?: UseGroupItemsParams) {
   const [data, setData] = useState<QueryDto[]>([]);
-  const [meta, setMeta] = useState<PaginationMeta>({ total: 0, limit: params?.limit || 50, offset: params?.offset || 0 });
+  const [meta, setMeta] = useState<PaginationMeta>({
+    total: 0,
+    limit: params?.limit || 50,
+    offset: params?.offset || 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
@@ -128,12 +132,9 @@ export function useAddGroupItems() {
       } else if (result.addedCount === queryIds.length) {
         toast.success(`Added ${result.addedCount} ${result.addedCount === 1 ? "query" : "queries"} to group`);
       } else {
-        toast.success(
-          `Added ${result.addedCount} ${result.addedCount === 1 ? "query" : "queries"} to group`,
-          {
-            description: `${queryIds.length - result.addedCount} ${queryIds.length - result.addedCount === 1 ? "was" : "were"} already in the group`,
-          }
-        );
+        toast.success(`Added ${result.addedCount} ${result.addedCount === 1 ? "query" : "queries"} to group`, {
+          description: `${queryIds.length - result.addedCount} ${queryIds.length - result.addedCount === 1 ? "was" : "were"} already in the group`,
+        });
       }
 
       return result;

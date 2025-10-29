@@ -1,0 +1,10 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { ClustersPage } from "@/components/ai-clusters/ClustersPage";
+
+export const prerender = false;
+---
+
+<Layout title="AI Cluster Suggestions">
+  <ClustersPage client:load />
+</Layout>

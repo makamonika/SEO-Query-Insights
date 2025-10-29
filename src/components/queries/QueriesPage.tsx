@@ -62,6 +62,7 @@ export function QueriesPage() {
   // AI cluster generation
   const { isGeneratingAI, handleGenerateAI } = useAIClusters({
     setLiveMessage,
+    navigateToAIClusters: true, // Navigate to AI clusters page after generation
   });
 
   // Group actions (create group)

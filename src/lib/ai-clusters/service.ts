@@ -26,10 +26,10 @@ export async function generateClusters(
   userId: string
 ): Promise<AiClusterSuggestionDto[]> {
   // Step 1: Fetch recent queries for clustering
+  // Note: queries table is a shared dataset (no user_id column)
   const { data: queries, error } = await supabase
     .from("queries")
-    .select("query_text, impressions, clicks, ctr, avg_position")
-    .eq("user_id", userId)
+    .select("id, query_text, impressions, clicks, ctr, avg_position")
     .order("date", { ascending: false });
 
   if (error) {

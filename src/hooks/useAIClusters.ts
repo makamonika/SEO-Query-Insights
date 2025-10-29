@@ -1,8 +1,11 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
+import type { AiClusterSuggestionDto } from "@/types";
 
 export interface UseAIClustersParams {
   setLiveMessage: (message: string) => void;
+  onSuggestionsGenerated?: (suggestions: AiClusterSuggestionDto[]) => void;
+  navigateToAIClusters?: boolean;
 }
 
 export interface UseAIClustersResult {
@@ -12,10 +15,14 @@ export interface UseAIClustersResult {
 
 /**
  * Custom hook to manage AI cluster generation
- * @param params - Callback for updating live region messages
+ * @param params - Callback for updating live region messages and handling suggestions
  * @returns AI generation handler and loading state
  */
-export function useAIClusters({ setLiveMessage }: UseAIClustersParams): UseAIClustersResult {
+export function useAIClusters({
+  setLiveMessage,
+  onSuggestionsGenerated,
+  navigateToAIClusters = false,
+}: UseAIClustersParams): UseAIClustersResult {
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const handleGenerateAI = useCallback(async () => {
@@ -35,18 +42,36 @@ export function useAIClusters({ setLiveMessage }: UseAIClustersParams): UseAIClu
           }, 1000);
           return;
         }
+
+        if (response.status === 429) {
+          toast.error("Rate limited", {
+            description: "Too many requests. Please try again in a minute.",
+          });
+          setLiveMessage("Rate limited. Try again later.");
+          return;
+        }
+
         throw new Error(`Failed to generate clusters: ${response.statusText}`);
       }
 
-      const suggestions = await response.json();
-      const successMsg = `Generated ${suggestions.length} cluster suggestions`;
+      const suggestions: AiClusterSuggestionDto[] = await response.json();
+      const successMsg = `Generated ${suggestions.length} cluster suggestion${suggestions.length !== 1 ? "s" : ""}`;
       toast.success("AI Clusters Generated", {
         description: successMsg,
       });
       setLiveMessage(successMsg);
 
-      // TODO: Navigate to /ai-clusters with suggestions in state
-      console.log("AI Clusters generated:", suggestions);
+      // Call the callback if provided (for injecting into context)
+      if (onSuggestionsGenerated) {
+        onSuggestionsGenerated(suggestions);
+      }
+
+      // Navigate to /ai-clusters if requested
+      if (navigateToAIClusters) {
+        setTimeout(() => {
+          window.location.href = "/ai-clusters";
+        }, 500);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       toast.error("Failed to generate AI clusters", {
@@ -56,7 +81,7 @@ export function useAIClusters({ setLiveMessage }: UseAIClustersParams): UseAIClu
     } finally {
       setIsGeneratingAI(false);
     }
-  }, [setLiveMessage]);
+  }, [setLiveMessage, onSuggestionsGenerated, navigateToAIClusters]);
 
   return {
     isGeneratingAI,
