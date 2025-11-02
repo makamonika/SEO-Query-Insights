@@ -13,6 +13,11 @@ create table groups (
   user_id uuid not null references auth.users(id) on delete cascade,
   name text not null check (length(trim(name)) > 0),
   ai_generated boolean not null default false,
+  metrics_impressions bigint not null default 0,
+  metrics_clicks bigint not null default 0,
+  metrics_ctr numeric(6,4) not null default 0,
+  metrics_avg_position numeric(6,2) not null default 0,
+  query_count integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

@@ -1,66 +1,12 @@
 import type { Tables } from "../../db/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
-import type { GroupWithMetricsDto, QueryDto } from "../../types";
-import { QUERIES_COLUMNS } from "../db/projections";
-import { calculateGroupMetricsFromQueries } from "../metrics";
-import { mapQueryRowToDto, mapGroupRowBase } from "../mappers";
+import type { GroupWithMetricsDto } from "../../types";
+import { mapGroupRowBase } from "../mappers";
 import { addGroupItems } from "../group-items/service";
+import { extractPersistedMetrics, recomputeAndPersistGroupMetrics } from "../group-metrics/service";
 
 type GroupRow = Tables<"groups">;
-
-async function fetchQueriesByGroupIds(
-  supabase: SupabaseClient<Database>,
-  groupIds: string[]
-): Promise<Map<string, QueryDto[]>> {
-  const result = new Map<string, QueryDto[]>();
-  if (groupIds.length === 0) return result;
-
-  const { data: items, error: itemsError } = await supabase
-    .from("group_items")
-    .select("group_id,query_id")
-    .in("group_id", groupIds);
-
-  if (itemsError) {
-    throw new Error(`Failed to fetch group items: ${itemsError.message}`);
-  }
-
-  const groupIdToQueryIds = new Map<string, string[]>();
-  for (const id of groupIds) groupIdToQueryIds.set(id, []);
-  const allQueryIds = new Set<string>();
-
-  for (const item of items ?? []) {
-    const gid = item.group_id as string;
-    const qid = item.query_id as string;
-    allQueryIds.add(qid);
-    const list = groupIdToQueryIds.get(gid);
-    if (list) list.push(qid);
-    else groupIdToQueryIds.set(gid, [qid]);
-  }
-
-  if (allQueryIds.size === 0) {
-    for (const gid of groupIds) result.set(gid, []);
-    return result;
-  }
-
-  const { data: queries, error: queriesError } = await supabase
-    .from("queries")
-    .select(QUERIES_COLUMNS)
-    .in("id", Array.from(allQueryIds));
-
-  if (queriesError) {
-    throw new Error(`Failed to fetch queries for groups: ${queriesError.message}`);
-  }
-
-  const queryById = new Map((queries ?? []).map((q) => [q.id as string, mapQueryRowToDto(q)]));
-
-  for (const [gid, qids] of groupIdToQueryIds.entries()) {
-    const rows = qids.map((id) => queryById.get(id)).filter((q): q is NonNullable<typeof q> => q !== undefined);
-    result.set(gid, rows);
-  }
-
-  return result;
-}
 
 export async function listGroups(
   supabase: SupabaseClient<Database>,
@@ -97,14 +43,10 @@ export async function listGroups(
     return { data: [], total: 0 };
   }
 
-  // Aggregate metrics and query counts for all groups
-  const groupIds = data.map((g) => g.id);
-  const groupIdToQueries = await fetchQueriesByGroupIds(supabase, groupIds);
-
-  const enriched = data.map((row) => {
+  // Read persisted metrics from group rows (denormalized on write)
+  const enriched = data.map((row: any) => {
     const base = mapGroupRowBase(row);
-    const queries = groupIdToQueries.get(row.id) ?? [];
-    const { metrics, queryCount } = calculateGroupMetricsFromQueries(queries);
+    const { metrics, queryCount } = extractPersistedMetrics(row);
     const dto: GroupWithMetricsDto = {
       ...base,
       queryCount,
@@ -141,20 +83,17 @@ export async function createGroup(
     throw new Error(`Failed to create group: ${error.message}`);
   }
 
-  // Add query items to the group if provided
+  // Add query items to the group if provided, then recompute metrics
+  let metricsResult = { metrics: { impressions: 0, clicks: 0, ctr: 0, avgPosition: 0 }, queryCount: 0 };
   if (payload.queryIds && payload.queryIds.length > 0) {
     await addGroupItems(supabase, userId, data.id, payload.queryIds);
+    metricsResult = await recomputeAndPersistGroupMetrics(supabase, data.id);
   }
-
-  // Compute metrics for the newly created group
-  const groupIdToQueries = await fetchQueriesByGroupIds(supabase, [data.id]);
-  const queries = groupIdToQueries.get(data.id) ?? [];
-  const { metrics, queryCount } = calculateGroupMetricsFromQueries(queries);
 
   return {
     ...mapGroupRowBase(data),
-    queryCount,
-    metrics,
+    queryCount: metricsResult.queryCount,
+    metrics: metricsResult.metrics,
   };
 }
 
@@ -177,9 +116,7 @@ export async function getGroupById(
     return null;
   }
 
-  const groupIdToQueries = await fetchQueriesByGroupIds(supabase, [data.id]);
-  const queries = groupIdToQueries.get(data.id) ?? [];
-  const { metrics, queryCount } = calculateGroupMetricsFromQueries(queries);
+  const { metrics, queryCount } = extractPersistedMetrics(data as any);
 
   return {
     ...mapGroupRowBase(data),
@@ -218,9 +155,7 @@ export async function updateGroup(
     return null;
   }
 
-  const groupIdToQueries = await fetchQueriesByGroupIds(supabase, [data.id]);
-  const queries = groupIdToQueries.get(data.id) ?? [];
-  const { metrics, queryCount } = calculateGroupMetricsFromQueries(queries);
+  const { metrics, queryCount } = extractPersistedMetrics(data as any);
 
   return {
     ...mapGroupRowBase(data),

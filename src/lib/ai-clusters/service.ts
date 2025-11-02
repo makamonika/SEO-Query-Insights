@@ -6,6 +6,7 @@ import { calculateGroupMetricsFromQueries } from "../metrics";
 import { mapQueryRowToDto } from "../mappers";
 import { OpenRouterService, OpenRouterError } from "../services/openrouter.service";
 import type { JsonSchemaConfig } from "../services/openrouter.types";
+import { recomputeAndPersistGroupMetrics } from "../group-metrics/service";
 
 /**
  * AI Clusters Service
@@ -254,23 +255,6 @@ export async function acceptClusters(
 ): Promise<GroupWithMetricsDto[]> {
   const createdGroups: GroupWithMetricsDto[] = [];
 
-  // Prefetch all queries needed for metrics calculation in a single query
-  const allQueryIds = Array.from(new Set(clustersToAccept.flatMap((c) => c.queryIds)));
-  let queryById = new Map<string, any>();
-  if (allQueryIds.length > 0) {
-    const { data: queriesForAll, error: queriesError } = await supabase
-      .from("queries")
-      .select(QUERIES_COLUMNS)
-      .in("id", allQueryIds);
-
-    if (queriesError) {
-      throw new Error(`Failed to fetch queries for metrics: ${queriesError.message}`);
-    }
-    if (queriesForAll) {
-      queryById = new Map(queriesForAll.map((q) => [q.id as string, q]));
-    }
-  }
-
   // Step 1: Create groups and their items
   for (const cluster of clustersToAccept) {
     // Create group
@@ -302,12 +286,8 @@ export async function acceptClusters(
       }
     }
 
-    // Calculate metrics for the created group
-    const queriesForCluster = cluster.queryIds
-      .map((id) => queryById.get(id))
-      .filter((q): q is NonNullable<typeof q> => q !== undefined)
-      .map((q) => mapQueryRowToDto(q));
-    const { metrics, queryCount } = calculateGroupMetricsFromQueries(queriesForCluster);
+    // Persist and read metrics for the created group
+    const { metrics, queryCount } = await recomputeAndPersistGroupMetrics(supabase, groupData.id);
 
     createdGroups.push({
       id: groupData.id,

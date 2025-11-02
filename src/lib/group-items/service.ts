@@ -10,6 +10,7 @@ import type { Database, Tables } from "../../db/database.types";
 import type { QueryDto } from "../../types";
 import { QUERIES_COLUMNS } from "../db/projections";
 import { mapQueryRowToDto } from "../mappers";
+import { recomputeAndPersistGroupMetrics } from "../group-metrics/service";
 
 export interface AddGroupItemsResult {
   addedCount: number;
@@ -96,6 +97,9 @@ export async function addGroupItems(
       target_id: groupId,
       metadata: { count: addedCount, queryIds: newQueryIds },
     });
+
+    // Step 6: Recompute and persist group metrics
+    await recomputeAndPersistGroupMetrics(supabase, groupId);
   }
 
   return { addedCount };
@@ -138,6 +142,9 @@ export async function removeGroupItem(
       target_id: groupId,
       metadata: { queryId },
     });
+
+    // Step 4: Recompute and persist group metrics
+    await recomputeAndPersistGroupMetrics(supabase, groupId);
   }
 
   return { removed };

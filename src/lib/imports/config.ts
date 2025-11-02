@@ -63,6 +63,8 @@ export function buildDailyImportUrl(): string {
   // Ensure base URL doesn't end with slash for clean concatenation
   const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
 
+  console.log("import utr:", `${cleanBaseUrl}/${fileName}`);
+  return "http://localhost:5000/";
   return `${cleanBaseUrl}/${fileName}`;
 }
 

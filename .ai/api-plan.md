@@ -254,7 +254,7 @@ All endpoints require service-role JWT.
 | **Opportunity detection** | During import: `isOpportunity = impressions > 1000 AND ctr < 0.01 AND 5 ≤ avgPosition ≤ 15`. Flag stored in DB; clients filter via `isOpportunity` param. |
 | **AI clustering** | `GET /ai-clusters` fetches latest `queries`, embeds text, runs K-means **on-demand**, and returns suggestions in the same response. Suggestions are **stateless** and not persisted server-side; when the client accepts clusters via `POST /ai-clusters/accept`, they are saved as groups with `ai_generated = true` |
 | **AI cluster actions logging** | `user_actions` logs `cluster_generated` and `cluster_accepted` with relevant metadata (cluster counts, query counts). |
-| **Aggregated metrics** | `/groups/{id}` and `/groups` compute metrics on-the-fly via SQL JOIN on latest date. |
+| **Aggregated metrics** | Group metrics are denormalized and persisted on write (create/add/remove/accept). `/groups/{id}` and `/groups` read stored metrics directly. |
 | **User actions logging** | Middleware records significant events (login, import, cluster actions, group CRUD) into `user_actions`. |
 
 ---

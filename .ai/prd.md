@@ -139,6 +139,12 @@ The following features are explicitly excluded from the MVP:
   - UI actions complete in < 500ms
   - Import process completes in < 1 minute
 
+### 4.3 Data & Aggregations
+
+- Query records are immutable per date in the MVP.
+- Group performance metrics are denormalized and persisted on write (create group, add/remove items, accept AI clusters).
+- Reads of groups use stored metrics; metrics are recalculated only when group composition changes.
+
 ## 5. User Stories
 
 ### 5.1 Authentication
