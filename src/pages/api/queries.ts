@@ -4,42 +4,10 @@ import type { GetQueriesResponseDto, ErrorResponse } from "../../types";
 import { QUERIES_COLUMNS } from "../../lib/db/projections";
 import type { Tables } from "../../db/database.types";
 import { queryParamsSchema } from "./_schemas/query";
+import { mapQueryRowToDto } from "../../lib/mappers";
 
 export const prerender = false;
 
-/**
- * Transforms database record (snake_case) to DTO (camelCase)
- */
-function transformQueryToDto(query: Tables<"queries">): GetQueriesResponseDto["data"][number] {
-  return {
-    id: query.id,
-    date: query.date,
-    queryText: query.query_text,
-    url: query.url,
-    impressions: query.impressions,
-    clicks: query.clicks,
-    ctr: query.ctr,
-    avgPosition: query.avg_position,
-    isOpportunity: query.is_opportunity,
-    createdAt: query.created_at,
-  };
-}
-
-/**
- * GET /api/queries
- *
- * Lists query performance records with optional filtering, sorting, and pagination.
- *
- * Query Parameters:
- * - search?: string - case-insensitive partial match against query_text
- * - isOpportunity?: boolean - filter by is_opportunity flag
- * - sortBy?: 'impressions' | 'clicks' | 'ctr' | 'avgPosition' - default 'impressions'
- * - order?: 'asc' | 'desc' - default 'desc' for impressions, 'asc' otherwise
- * - limit?: number - default 50, range 1-1000
- * - offset?: number - default 0, min 0
- *
- * Returns: GetQueriesResponseDto or ErrorResponse
- */
 export const GET: APIRoute = async ({ locals, url }) => {
   try {
     // Step 1: Parse and validate query parameters
@@ -107,7 +75,7 @@ export const GET: APIRoute = async ({ locals, url }) => {
 
     // Step 5: Transform database records to DTOs with camelCase fields
     const responseData: GetQueriesResponseDto = {
-      data: data.map(transformQueryToDto),
+      data: data.map((q) => mapQueryRowToDto(q as Tables<"queries">)),
       meta: {
         total: count ?? 0,
         limit: params.limit,

@@ -3,16 +3,6 @@ import type { ErrorResponse, AiClusterSuggestionDto } from "../../../types";
 import { generateClusters } from "../../../lib/ai-clusters/service";
 
 export const prerender = false;
-/**
- * GET /api/ai-clusters
- * Generates AI clustering suggestions on-demand and returns them to the client.
- * Suggestions are stateless and not persisted server-side.
- *
- * Response: Array of AiClusterSuggestionDto
- *
- * Authentication is skipped for now per instructions; a placeholder userId is used.
- */
-
 export const GET: APIRoute = async ({ locals }) => {
   // TODO: Replace with real auth once available
   const userId = "95f925a0-a5b9-47c2-b403-b29a9a66e88b";
