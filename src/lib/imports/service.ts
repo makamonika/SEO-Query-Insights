@@ -10,6 +10,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
 import type { TablesInsert } from "../../db/database.types";
 import { ImportConfig } from "./config";
+import { calculateCtrDecimal, computeIsOpportunity } from "../metrics";
 
 /**
  * Raw GSC data record from import source
@@ -43,22 +44,7 @@ export interface ImportServiceResult {
  * @param avgPosition - Average position (1-based)
  * @returns True if query meets opportunity criteria
  */
-export function computeIsOpportunity(impressions: number, ctr: number, avgPosition: number): boolean {
-  return impressions > 1000 && ctr < 0.01 && avgPosition >= 5 && avgPosition <= 15;
-}
-
-/**
- * Calculates click-through rate from clicks and impressions
- * @param clicks - Number of clicks
- * @param impressions - Number of impressions
- * @returns CTR as decimal (0-1), or 0 if impressions is 0
- */
-export function calculateCtr(clicks: number, impressions: number): number {
-  if (impressions === 0) {
-    return 0;
-  }
-  return clicks / impressions;
-}
+// CTR and opportunity helpers moved to shared metrics module
 
 /**
  * Validates and transforms a raw GSC record into a queries table insert
@@ -94,8 +80,8 @@ export function transformGscRecord(record: GscDataRecord): TablesInsert<"queries
     throw new Error("Invalid avg_position value (must be >= 0)");
   }
 
-  // Calculate CTR from clicks and impressions
-  const ctr = calculateCtr(record.clicks, record.impressions);
+  // Calculate CTR from clicks and impressions (decimal 0-1)
+  const ctr = calculateCtrDecimal(record.clicks, record.impressions);
 
   // Round CTR to 2 decimal places (good enough for display)
   const roundedCtr = Math.round(ctr * 100) / 100;

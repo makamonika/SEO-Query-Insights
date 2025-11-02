@@ -9,66 +9,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Tables } from "../../db/database.types";
 import type { QueryDto } from "../../types";
 import { QUERIES_COLUMNS } from "../db/projections";
+import { mapQueryRowToDto } from "../mappers";
 
-export type AddGroupItemsResult = {
+export interface AddGroupItemsResult {
   addedCount: number;
-};
+}
 
-export type RemoveGroupItemResult = {
+export interface RemoveGroupItemResult {
   removed: boolean;
-};
-
-/**
- * Helper to convert snake_case query row to camelCase DTO
- */
-function mapQueryRowToDto(row: Tables<"queries">): QueryDto {
-  return {
-    id: row.id,
-    date: row.date,
-    queryText: row.query_text,
-    url: row.url,
-    impressions: row.impressions,
-    clicks: row.clicks,
-    ctr: row.ctr,
-    avgPosition: row.avg_position,
-    isOpportunity: row.is_opportunity,
-    createdAt: row.created_at,
-  };
-}
-
-/**
- * Custom error for group not found or unauthorized access
- */
-export class GroupNotFoundError extends Error {
-  constructor(message = "Group not found or access denied") {
-    super(message);
-    this.name = "GroupNotFoundError";
-  }
-}
-
-/**
- * Verify that a group exists and belongs to the specified user
- * @throws GroupNotFoundError if group doesn't exist or user doesn't own it
- */
-async function verifyGroupOwnership(
-  supabase: SupabaseClient<Database>,
-  userId: string,
-  groupId: string
-): Promise<void> {
-  const { data, error } = await supabase
-    .from("groups")
-    .select("id")
-    .eq("id", groupId)
-    .eq("user_id", userId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(`Failed to verify group ownership: ${error.message}`);
-  }
-
-  if (!data) {
-    throw new GroupNotFoundError();
-  }
 }
 
 /**
@@ -84,17 +32,14 @@ export async function addGroupItems(
   groupId: string,
   queryIds: string[]
 ): Promise<AddGroupItemsResult> {
-  // Step 1: Verify group exists and belongs to user
-  await verifyGroupOwnership(supabase, userId, groupId);
-
-  // Step 2: Deduplicate query IDs
+  // Step 1: Deduplicate query IDs
   const uniqueQueryIds = [...new Set(queryIds.filter((id) => id.length > 0))];
 
   if (uniqueQueryIds.length === 0) {
     return { addedCount: 0 };
   }
 
-  // Step 3: Verify all query IDs exist
+  // Step 2: Verify all query IDs exist
   const { data: existingQueries, error: queriesError } = await supabase
     .from("queries")
     .select("id")
@@ -111,7 +56,7 @@ export async function addGroupItems(
     throw new Error(`Invalid query IDs: ${invalidIds.join(", ")}`);
   }
 
-  // Step 4: Check which items already exist in the group
+  // Step 3: Check which items already exist in the group
   const { data: existingItems, error: checkError } = await supabase
     .from("group_items")
     .select("query_id")
@@ -129,7 +74,7 @@ export async function addGroupItems(
     return { addedCount: 0 };
   }
 
-  // Step 5: Insert new items
+  // Step 4: Insert new items
   const itemsToInsert = newQueryIds.map((queryId) => ({
     group_id: groupId,
     query_id: queryId,
@@ -143,7 +88,7 @@ export async function addGroupItems(
 
   const addedCount = newQueryIds.length;
 
-  // Step 6: Track user action
+  // Step 5: Track user action
   if (addedCount > 0) {
     await supabase.from("user_actions").insert({
       user_id: userId,
@@ -167,15 +112,12 @@ export async function removeGroupItem(
   groupId: string,
   queryId: string
 ): Promise<RemoveGroupItemResult> {
-  // Step 1: Verify group exists and belongs to user
-  await verifyGroupOwnership(supabase, userId, groupId);
-
-  // Step 2: Validate query ID
+  // Step 1: Validate query ID
   if (!queryId || queryId.trim().length === 0) {
     throw new Error("Query ID cannot be empty");
   }
 
-  // Step 3: Delete the item
+  // Step 2: Delete the item
   const { error, count } = await supabase
     .from("group_items")
     .delete({ count: "exact" })
@@ -188,7 +130,7 @@ export async function removeGroupItem(
 
   const removed = (count ?? 0) > 0;
 
-  // Step 4: Track user action if item was removed
+  // Step 3: Track user action if item was removed
   if (removed) {
     await supabase.from("user_actions").insert({
       user_id: userId,
@@ -216,10 +158,7 @@ export async function getGroupItems(
     offset?: number;
   }
 ): Promise<{ data: QueryDto[]; total: number }> {
-  // Step 1: Verify group exists and belongs to user
-  await verifyGroupOwnership(supabase, userId, groupId);
-
-  // Step 2: Join group_items with queries using the foreign key relationship
+  // Step 1: Join group_items with queries using the foreign key relationship
   // Using inner join to only get items where the query exists
   const { data, error, count } = await supabase
     .from("group_items")
@@ -242,7 +181,7 @@ export async function getGroupItems(
     return { data: [], total: 0 };
   }
 
-  // Step 3: Map to QueryDto and sort by impressions descending
+  // Step 2: Map to QueryDto and sort by impressions descending
   const queries = data
     .map((item) => {
       // The queries field is a single object due to the foreign key relationship
@@ -255,7 +194,7 @@ export async function getGroupItems(
   // Sort by impressions descending (client-side since ordering related fields can be tricky)
   const sortedQueries = queries.sort((a, b) => b.impressions - a.impressions);
 
-  // Apply pagination if provided
+  // Step 3: Apply pagination if provided
   if (opts?.limit !== undefined && opts?.offset !== undefined) {
     const paginatedQueries = sortedQueries.slice(opts.offset, opts.offset + opts.limit);
     return { data: paginatedQueries, total: count ?? 0 };
