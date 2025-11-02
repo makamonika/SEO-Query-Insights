@@ -3,12 +3,12 @@ import { ImportButton } from "./ImportButton";
 import { shouldShowImportButton, getDailyImportCutoff } from "./utils";
 import { DAILY_IMPORT_HOUR, DAILY_IMPORT_MINUTE } from "@/lib/settings";
 
-type PageHeaderProps = {
+interface PageHeaderProps {
   lastImportAt?: string;
   isImporting: boolean;
   hasFailed: boolean;
   onImport: () => Promise<void>;
-};
+}
 
 export function PageHeader({ lastImportAt, isImporting, hasFailed, onImport }: PageHeaderProps) {
   const status = isImporting ? "running" : hasFailed ? "failed" : "completed";

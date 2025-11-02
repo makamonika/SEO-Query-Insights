@@ -2,7 +2,7 @@ import { QueriesTable } from "./QueriesTable";
 import { QueriesToolbar } from "./QueriesToolbar";
 import type { QueryDto, QuerySortField, SortOrder } from "@/types";
 
-type QueriesTableWithControlsProps = {
+interface QueriesTableWithControlsProps {
   // Data
   rows: QueryDto[];
   isLoading: boolean;
@@ -30,7 +30,7 @@ type QueriesTableWithControlsProps = {
   // Table display options
   height?: string;
   maxHeight?: string;
-};
+}
 
 /**
  * Data table with integrated controls

@@ -187,7 +187,7 @@ async function runImportWithTimeout(
 }
 
 /**
- * Logs import completion to user_actions table
+ * Logs import completion to user_actions table and console
  */
 async function logImportCompletion(
   supabase: SupabaseClient<Database>,
@@ -195,6 +195,11 @@ async function logImportCompletion(
   importId: string,
   result: ImportResult
 ): Promise<void> {
+  // Log errors to console
+  if (!result.success && result.error) {
+    console.error("[imports] Import failed:", result.error);
+  }
+
   try {
     await supabase.from("user_actions").insert({
       user_id: userId,

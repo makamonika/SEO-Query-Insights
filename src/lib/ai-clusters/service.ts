@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../../db/database.types";
+import type { Database, Tables } from "../../db/database.types";
 import type { AiClusterSuggestionDto, GroupWithMetricsDto, AcceptClusterDto, QueryDto } from "../../types";
 import { QUERIES_COLUMNS } from "../db/projections";
 import { calculateGroupMetricsFromQueries } from "../metrics";
-import { mapQueryRowToDto } from "../mappers";
+import { mapQueryRowToDto, mapGroupRowBase } from "../mappers";
 import { OpenRouterService, OpenRouterError } from "../services/openrouter.service";
 import type { JsonSchemaConfig } from "../services/openrouter.types";
 import { recomputeAndPersistGroupMetrics } from "../group-metrics/service";
@@ -20,7 +20,7 @@ import { recomputeAndPersistGroupMetrics } from "../group-metrics/service";
 // Constants & Configuration
 // ============================================================================
 
-const MAX_QUERIES_FOR_CLUSTERING = 1000;
+const MAX_QUERIES_FOR_CLUSTERING = 500;
 
 // JSON Schema for OpenRouter response format
 const CLUSTER_RESPONSE_SCHEMA: JsonSchemaConfig = {
@@ -76,23 +76,36 @@ function getOpenRouterService(): OpenRouterService {
  * Build the system prompt for cluster generation
  */
 function buildSystemPrompt(): string {
-  return `You are an expert SEO analyst specialized in grouping search queries into meaningful, opportunity-driven semantic clusters.
+  return `You are an expert SEO strategist focused on creating actionable query clusters for content optimization.
 
-Your task is to analyze a list of search queries and group a subset of them (ideally 3-7 thematic clusters) based on:
-- Search intent (informational, navigational, transactional)
-- Topic similarity
-- User journey stage
-- Semantic relationships
-- Performance metrics (impressions, clicks, CTR, average position)
-- Opportunity flag (isOpportunity) indicating high optimization potential
+Your goal is to group search queries that:
+1. **Can be optimized together** - queries that share the same core topic and could be addressed with the same or similar content/page
+2. **Share strong semantic meaning** - queries must refer to the same subject, entity, or closely related concepts
+3. **Have matching search intent** - all queries in a cluster must have the same intent type (informational, navigational, or transactional)
+4. **Represent a clear optimization task** - each cluster should represent a specific work item for the SEO team
 
-Guidelines:
-- Create 3-7 clusters (aim for 5 if possible)
-- A query SHOULD be clustered only if it clearly fits a cluster - it is acceptable to leave queries unclustered; unclustered queries must be omitted from the response
-- Each cluster should have a clear, descriptive name (2-5 words)
-- Distribute queries as evenly as practical across clusters
-- Cluster names must be specific and actionable (e.g., "Product Pricing & Plans" not just "Pricing")
-- Prioritize grouping by search intent and opportunity over exact keyword matching`;
+Clustering Rules (STRICTLY ENFORCE):
+- **Semantic Coherence**: Only group queries that are genuinely about the same topic/subject. If queries are loosely related but not about the same core concept, DO NOT cluster them together
+- **Intent Alignment**: NEVER mix queries with different search intents in the same cluster (e.g., don't mix "how to" informational queries with "buy" transactional queries)
+- **Content Optimization Focus**: Ask yourself: "Could these queries be optimized on the same page or with similar content?" If not, don't cluster them
+- **Quality over Quantity**: It is BETTER to leave queries unclustered than to create weak, loosely-related clusters
+- **Minimum Cluster Size**: Only create clusters with 3+ queries that are strongly related
+
+Output Guidelines:
+- Create 3-7 clusters (aim for 5 if data supports it)
+- Cluster names should be specific, SEO-focused, and actionable (e.g., "Pricing Plans Comparison" not just "Pricing")
+- Each cluster name should clearly describe the optimization opportunity
+- Omit queries that don't fit into strong, coherent clusters - unclustered queries will not appear in the response
+
+Remember: Clusters should help SEO teams prioritize optimization work by identifying queries that can be improved together.
+
+Input format:
+- The user message is a JSON object with shape:
+  {
+    "queries": [{ "id": string, "q": string, "imp": number, "clk": number, "ctr": number|null, "pos": number|null, "opp": boolean }],
+    "constraints": { "minClusterSize": number, "minClusters": number, "maxClusters": number, "useOnlyProvidedIds": true }
+  }
+- Use only values from queries[].id when producing queryIds.`;
 }
 
 /**
@@ -109,23 +122,26 @@ function buildUserPrompt(
     is_opportunity: boolean;
   }[]
 ): string {
-  const queryList = queries
-    .map(
-      (q, idx) =>
-        `${idx + 1}. [ID: ${q.id}] "${q.query_text}" | impressions: ${q.impressions}, clicks: ${q.clicks}, ctr: ${q.ctr !== null && q.ctr !== undefined ? (q.ctr * 100).toFixed(2) : "N/A"}%, avgPos: ${q.avg_position !== null && q.avg_position !== undefined ? q.avg_position.toFixed(1) : "N/A"}, opportunity: ${q.is_opportunity}`
-    )
-    .join("\n");
+  const payload = {
+    queries: queries.map((q) => ({
+      id: q.id,
+      q: q.query_text,
+      imp: q.impressions,
+      clk: q.clicks,
+      ctr: q.ctr ?? null,
+      pos: q.avg_position ?? null,
+      opp: q.is_opportunity,
+    })),
+    constraints: {
+      minClusterSize: 3,
+      minClusters: 3,
+      maxClusters: 7,
+      useOnlyProvidedIds: true,
+      nameStyle: "specific_seo_actionable",
+    },
+  };
 
-  return `Analyze the following search queries and propose semantic clusters **only for the queries that fit together meaningfully**. Queries that do not fit any cluster SHOULD be discarded (they will not appear in the response).
-
-${queryList}
-
-Return a JSON response with the following structure:
-- clusters: array of clusters where each cluster includes:
-  - name: descriptive cluster name
-  - queryIds: array of query IDs (strings) belonging to this cluster
-
-Only include clustered query IDs; omitted queries are considered unclustered.`;
+  return JSON.stringify(payload);
 }
 
 // ============================================================================
@@ -143,87 +159,151 @@ export async function generateClusters(
 ): Promise<AiClusterSuggestionDto[]> {
   // Step 1: Fetch recent queries for clustering
   // Note: queries table is a shared dataset (no user_id column)
-  const { data: queries, error } = await supabase
-    .from("queries")
-    .select(QUERIES_COLUMNS)
-    .order("impressions", { ascending: false })
-    .order("date", { ascending: false })
-    .limit(MAX_QUERIES_FOR_CLUSTERING);
+  // Fetch in chunks of 1000 to bypass Supabase's default limit
+  const queries: Tables<"queries">[] = [];
+  const chunkSize = 1000;
+  const totalToFetch = MAX_QUERIES_FOR_CLUSTERING;
 
-  if (error) {
-    console.error("Supabase error fetching queries:", error);
-    throw new Error(`Failed to fetch queries for clustering: ${error.message}`);
+  for (let offset = 0; offset < totalToFetch; offset += chunkSize) {
+    const end = Math.min(offset + chunkSize - 1, totalToFetch - 1);
+    const { data: chunk, error } = await supabase
+      .from("queries")
+      .select(QUERIES_COLUMNS)
+      .order("impressions", { ascending: false })
+      .order("date", { ascending: false })
+      .range(offset, end);
+
+    if (error) {
+      console.error("Supabase error fetching queries:", error);
+      throw new Error(`Failed to fetch queries for clustering: ${error.message}`);
+    }
+
+    if (!chunk || chunk.length === 0) {
+      break; // No more data available
+    }
+
+    queries.push(...chunk);
+
+    // If we got less than chunkSize, we've reached the end
+    if (chunk.length < chunkSize) {
+      break;
+    }
   }
 
-  if (!queries || queries.length === 0) {
+  if (queries.length === 0) {
     console.log("No queries available for clustering");
     return [];
   }
-
   console.log(`Fetched ${queries.length} queries for clustering`);
+  // Step 2: Split queries into batches of 1000 for AI processing
+  const BATCH_SIZE = 1000;
+  const batches: Tables<"queries">[][] = [];
 
-  // Step 2: Generate clusters using OpenRouter AI
-  let aiResponse: { clusters: { name: string; queryIds: string[] }[] };
-
-  try {
-    const openRouter = getOpenRouterService();
-    const systemPrompt = buildSystemPrompt();
-    const userPrompt = buildUserPrompt(queries);
-
-    const response = await openRouter.chat({
-      systemPrompt,
-      userPrompt,
-      responseFormat: CLUSTER_RESPONSE_SCHEMA,
-      parameters: {
-        temperature: 0.7,
-      },
-    });
-
-    // Parse the AI response
-    try {
-      aiResponse = JSON.parse(response.message.content);
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", parseError);
-      throw new Error("Invalid JSON response from AI");
-    }
-
-    console.log(`AI generated ${aiResponse.clusters.length} clusters`);
-  } catch (error) {
-    if (error instanceof OpenRouterError) {
-      console.error("OpenRouter error:", error.message);
-      throw new Error(`AI clustering failed: ${error.message}`);
-    }
-    throw error;
+  for (let i = 0; i < queries.length; i += BATCH_SIZE) {
+    batches.push(queries.slice(i, i + BATCH_SIZE));
   }
 
-  // Step 3: Transform AI response to DTOs
+  // Step 3: Process each batch through AI clustering
+  const batchResults: { clusters: { name: string; queryIds: string[] }[] }[] = [];
+  const openRouter = getOpenRouterService();
+  const systemPrompt = buildSystemPrompt();
+
+  for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+    const batch = batches[batchIndex];
+
+    try {
+      const userPrompt = buildUserPrompt(batch);
+
+      const response = await openRouter.chat({
+        systemPrompt,
+        userPrompt,
+        responseFormat: CLUSTER_RESPONSE_SCHEMA,
+        parameters: {
+          temperature: 0.7,
+        },
+      });
+
+      // Parse the AI response
+      try {
+        const aiResponse = JSON.parse(response.message.content);
+        batchResults.push(aiResponse);
+      } catch (parseError) {
+        console.error(`Failed to parse AI response for batch ${batchIndex + 1}:`, parseError);
+        throw new Error(`Invalid JSON response from AI for batch ${batchIndex + 1}`);
+      }
+    } catch (error) {
+      if (error instanceof OpenRouterError) {
+        console.error(`OpenRouter error for batch ${batchIndex + 1}:`, error.message);
+        throw new Error(`AI clustering failed for batch ${batchIndex + 1}: ${error.message}`);
+      }
+      throw error;
+    }
+  }
+
+  // Step 4: Combine all clusters from all batches (no merging)
   const queryMap = new Map(queries.map((q) => [q.id, mapQueryRowToDto(q)]));
 
-  const clusters: AiClusterSuggestionDto[] = aiResponse.clusters
-    .map((cluster) => {
-      // Filter out invalid query IDs and get actual query data
-      // per cluster
-      const clusterQueries = cluster.queryIds
-        .map((id) => queryMap.get(id))
+  // UUID format validation regex (format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  // Flatten all clusters from all batches and convert to DTOs
+  const allClusters: AiClusterSuggestionDto[] = [];
+  let totalClustersFromBatches = 0;
+  let filteredOutCount = 0;
+  let invalidIdCount = 0;
+  let notFoundIdCount = 0;
+
+  for (let batchIdx = 0; batchIdx < batchResults.length; batchIdx++) {
+    const batchResult = batchResults[batchIdx];
+
+    for (const cluster of batchResult.clusters) {
+      totalClustersFromBatches++;
+
+      // Filter out invalid IDs (not UUID format)
+      const validIds = cluster.queryIds.filter((id) => {
+        if (!uuidRegex.test(id)) {
+          invalidIdCount++;
+          return false;
+        }
+        return true;
+      });
+
+      const clusterQueries = validIds
+        .map((id) => {
+          const query = queryMap.get(id);
+          if (!query) {
+            notFoundIdCount++;
+          }
+          return query;
+        })
         .filter((q): q is QueryDto => q !== undefined);
 
-      if (clusterQueries.length === 0) {
-        return null;
+      if (clusterQueries.length >= 3) {
+        const { metrics, queryCount } = calculateGroupMetricsFromQueries(clusterQueries);
+
+        allClusters.push({
+          name: cluster.name,
+          queries: clusterQueries,
+          queryCount,
+          metrics,
+        });
+      } else {
+        filteredOutCount++;
       }
+    }
+  }
 
-      // Calculate aggregated metrics for the cluster via shared util
-      const { metrics, queryCount } = calculateGroupMetricsFromQueries(clusterQueries);
+  if (invalidIdCount > 0) {
+    console.warn(
+      `Warning: ${invalidIdCount} invalid query IDs (not UUID format) were filtered out. This may indicate the AI model is not following the ID format instructions correctly.`
+    );
+  }
+  if (notFoundIdCount > 0) {
+    console.warn(`Warning: ${notFoundIdCount} query IDs were valid UUIDs but not found in the dataset.`);
+  }
+  const clusters = allClusters;
 
-      return {
-        name: cluster.name,
-        queries: clusterQueries,
-        queryCount,
-        metrics,
-      };
-    })
-    .filter((cluster): cluster is AiClusterSuggestionDto => cluster !== null);
-
-  // Step 4: Log user action (optional - don't fail if this errors)
+  // Step 5: Log user action (optional - don't fail if this errors)
   try {
     await supabase.from("user_actions").insert({
       user_id: userId,
@@ -231,7 +311,8 @@ export async function generateClusters(
       metadata: {
         clusterCount: clusters.length,
         queryCount: queries.length,
-        totalQueriesInClusters: clusters.reduce((sum, c) => sum + c.queryCount, 0),
+        totalQueriesInClusters: clusters.reduce((sum: number, c: AiClusterSuggestionDto) => sum + c.queryCount, 0),
+        batchCount: batches.length,
       },
     });
   } catch (actionError) {
@@ -290,15 +371,10 @@ export async function acceptClusters(
     const { metrics, queryCount } = await recomputeAndPersistGroupMetrics(supabase, groupData.id);
 
     createdGroups.push({
-      id: groupData.id,
-      userId: groupData.user_id,
-      name: groupData.name,
-      aiGenerated: groupData.ai_generated,
-      createdAt: groupData.created_at,
-      updatedAt: groupData.updated_at,
+      ...mapGroupRowBase(groupData),
       queryCount,
       metrics,
-    });
+    } as GroupWithMetricsDto);
   }
 
   // Step 2: Log user action

@@ -26,7 +26,16 @@ export function useAIClusters({
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
 
   const handleGenerateAI = useCallback(async () => {
+    if (isGeneratingAI) return;
     setIsGeneratingAI(true);
+
+    // If we should navigate to the AI Clusters page, redirect first and let that page fetch once.
+    if (navigateToAIClusters) {
+      setLiveMessage("Opening AI clusters...");
+      window.location.href = "/ai-clusters";
+      return;
+    }
+
     setLiveMessage("Generating AI clusters...");
 
     try {
@@ -38,7 +47,7 @@ export function useAIClusters({
             description: "Redirecting to login...",
           });
           setTimeout(() => {
-            window.location.href = "/login?returnUrl=" + encodeURIComponent(window.location.pathname);
+            window.location.href = "/login?returnUrl=" + encodeURIComponent(window.location.href);
           }, 1000);
           return;
         }
@@ -65,13 +74,6 @@ export function useAIClusters({
       if (onSuggestionsGenerated) {
         onSuggestionsGenerated(suggestions);
       }
-
-      // Navigate to /ai-clusters if requested
-      if (navigateToAIClusters) {
-        setTimeout(() => {
-          window.location.href = "/ai-clusters";
-        }, 500);
-      }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
       toast.error("Failed to generate AI clusters", {
@@ -81,7 +83,7 @@ export function useAIClusters({
     } finally {
       setIsGeneratingAI(false);
     }
-  }, [setLiveMessage, onSuggestionsGenerated, navigateToAIClusters]);
+  }, [setLiveMessage, onSuggestionsGenerated, navigateToAIClusters, isGeneratingAI]);
 
   return {
     isGeneratingAI,

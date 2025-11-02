@@ -78,9 +78,9 @@ export const ImportConfig = {
   FETCH_TIMEOUT_MS: Number(import.meta.env.IMPORT_FETCH_TIMEOUT_MS) || 30000,
 
   /**
-   * Maximum size of import file in bytes (50 MB default)
+   * Maximum size of import file in bytes (70 MB default)
    */
-  MAX_BYTES: Number(import.meta.env.IMPORT_MAX_BYTES) || 50_000_000,
+  MAX_BYTES: Number(import.meta.env.IMPORT_MAX_BYTES) || 70_000_000,
 
   /**
    * Number of rows to insert per batch operation
