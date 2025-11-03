@@ -24,10 +24,11 @@ export function useImportStatus(): ImportStatus {
         const response = await fetch("/api/queries?limit=1");
 
         if (response.ok) {
-          const data = await response.json();
+          const responseData = await response.json();
           // If we have queries, check the most recent one's timestamp
-          if (data && data.length > 0 && data[0].createdAt) {
-            setLastImportAt(data[0].createdAt);
+          // API returns { data: [...], meta: {...} }
+          if (responseData?.data && responseData.data.length > 0 && responseData.data[0].createdAt) {
+            setLastImportAt(responseData.data[0].createdAt);
           }
         }
       } catch (err) {

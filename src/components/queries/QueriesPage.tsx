@@ -154,7 +154,12 @@ export function QueriesPage() {
         Skip to content
       </a>
 
-      <PageHeader lastImportAt={lastImportAt} isImporting={isImporting} hasFailed={hasFailed} onImport={handleImport} />
+      <PageHeader
+        lastImportAt={importStatus.lastImportAt || lastImportAt}
+        isImporting={isImporting}
+        hasFailed={hasFailed}
+        onImport={handleImport}
+      />
 
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-4">
