@@ -1,6 +1,22 @@
 ---
 import AuthLayout from "@/layouts/AuthLayout.astro";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { createSupabaseServerInstance } from "@/db/supabase.client";
+
+// Check if user is already authenticated
+// Since /login is a public route, we need to manually check the session
+const supabase = createSupabaseServerInstance({
+  headers: Astro.request.headers,
+  cookies: Astro.cookies,
+});
+
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+if (user) {
+  return Astro.redirect("/");
+}
 
 // Check if user just reset their password
 const url = new URL(Astro.request.url);

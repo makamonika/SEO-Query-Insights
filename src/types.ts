@@ -53,29 +53,92 @@ export interface ErrorResponse {
 // 1. Authentication DTOs
 // ============================================================================
 
+/**
+ * Login request body
+ */
 export interface LoginRequestDto {
   email: string;
   password: string;
 }
 
+/**
+ * Register request body
+ */
+export interface RegisterRequestDto {
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+/**
+ * User data transfer object
+ */
 export interface UserDto {
   id: string;
   email: string;
   createdAt: string;
 }
 
+/**
+ * Login response (user data only, auth cookies are set via Set-Cookie header)
+ */
 export interface LoginResponseDto {
-  accessToken: string;
-  expiresIn: number;
-  refreshToken: string;
   user: UserDto;
 }
 
-export interface RefreshTokenRequestDto {
-  refreshToken: string;
+/**
+ * Register response (user data only, auth cookies are set via Set-Cookie header)
+ */
+export interface RegisterResponseDto {
+  user: UserDto;
 }
 
-export type RefreshTokenResponseDto = LoginResponseDto;
+/**
+ * Forgot password request body
+ */
+export interface ForgotPasswordRequestDto {
+  email: string;
+}
+
+/**
+ * Forgot password response
+ */
+export interface ForgotPasswordResponseDto {
+  message: string;
+}
+
+/**
+ * Reset password request body
+ */
+export interface ResetPasswordRequestDto {
+  password: string;
+  confirmPassword: string;
+}
+
+/**
+ * Reset password response
+ */
+export interface ResetPasswordResponseDto {
+  message: string;
+}
+
+/**
+ * Current user response (from /api/auth/me)
+ */
+export interface GetCurrentUserResponseDto {
+  user: UserDto;
+}
+
+/**
+ * Auth error response with specific auth error codes
+ */
+export interface AuthErrorResponse extends ErrorResponse {
+  error: {
+    code: "validation_error" | "unauthorized" | "conflict" | "rate_limited" | "internal";
+    message: string;
+    details?: Record<string, unknown>;
+  };
+}
 
 // ============================================================================
 // 2. Query DTOs

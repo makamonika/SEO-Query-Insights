@@ -72,15 +72,19 @@ export function LoginForm() {
           email: email.trim(),
           password,
         }),
+        credentials: "same-origin", // Ensure cookies are sent/received
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.error?.message || "Invalid email or password");
       }
 
-      // Success - reload page to trigger middleware redirect
-      window.location.href = "/";
+      // Success - cookies are set by server, redirect to home or specified redirect URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectTo = urlParams.get("redirect") || "/";
+      window.location.href = redirectTo;
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
       setIsLoading(false);

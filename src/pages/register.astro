@@ -1,6 +1,22 @@
 ---
 import AuthLayout from "@/layouts/AuthLayout.astro";
 import { RegisterForm } from "@/components/auth/RegisterForm";
+import { createSupabaseServerInstance } from "@/db/supabase.client";
+
+// Check if user is already authenticated
+// Since /register is a public route, we need to manually check the session
+const supabase = createSupabaseServerInstance({
+  headers: Astro.request.headers,
+  cookies: Astro.cookies,
+});
+
+const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+if (user) {
+  return Astro.redirect("/");
+}
 ---
 
 <AuthLayout title="Sign Up - SEO Query Insights Dashboard">
