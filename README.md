@@ -84,6 +84,12 @@ The SEO team currently relies on Google Search Console data but existing tools f
   - Cost optimization capabilities
   - API key financial limits
 
+### Testing
+
+- **Vitest** - Unit and integration test framework
+- **React Testing Library** - Testing React components and hooks
+- **Playwright** - End-to-end (E2E) testing in real browser environments
+
 ### Development Tools
 
 - **ESLint** - Code linting

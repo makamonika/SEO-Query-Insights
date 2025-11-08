@@ -18,6 +18,12 @@
 * Gives access to a wide range of models (OpenAI, Anthropic, Google, and many others), enabling us to find a solution that ensures high efficiency and low cost.
 * Allows setting financial limits for API keys.
 
+**Testing:**
+
+* Vitest for running unit and integration tests.
+* React Testing Library for testing React components without a full browser render.
+* Playwright for automating end-to-end user scenarios in a real browser environment.
+
 **CI/CD and Hosting:**
 
 * GitHub Actions for building CI/CD pipelines.

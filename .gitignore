@@ -22,3 +22,12 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# test coverage
+coverage/
+*.lcov
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
