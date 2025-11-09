@@ -1,5 +1,5 @@
 import type { Tables } from "../db/database.types";
-import type { QueryDto } from "../types";
+import type { GroupDto, QueryDto } from "../types";
 
 export function mapQueryRowToDto(row: Tables<"queries">): QueryDto {
   return {
@@ -16,7 +16,7 @@ export function mapQueryRowToDto(row: Tables<"queries">): QueryDto {
   };
 }
 
-export function mapGroupRowBase(row: Tables<"groups">) {
+export function mapGroupRowBase(row: Tables<"groups">): GroupDto {
   return {
     id: row.id,
     userId: row.user_id,
@@ -24,5 +24,10 @@ export function mapGroupRowBase(row: Tables<"groups">) {
     aiGenerated: row.ai_generated,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
-  } as const;
+    queryCount: Number(row.query_count ?? 0),
+    metricsImpressions: Number(row.metrics_impressions ?? 0),
+    metricsClicks: Number(row.metrics_clicks ?? 0),
+    metricsCtr: Number(row.metrics_ctr ?? 0),
+    metricsAvgPosition: Number(row.metrics_avg_position ?? 0),
+  };
 }

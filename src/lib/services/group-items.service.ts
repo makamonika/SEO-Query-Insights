@@ -10,7 +10,7 @@ import type { Database, Tables } from "../../db/database.types";
 import type { QueryDto } from "../../types";
 import { QUERIES_COLUMNS } from "../db/projections";
 import { mapQueryRowToDto } from "../mappers";
-import { recomputeAndPersistGroupMetrics } from "../group-metrics/service";
+import { recomputeAndPersistGroupMetrics } from "../services/group-metrics.service";
 
 export class GroupNotFoundError extends Error {
   constructor(message = "Group not found") {

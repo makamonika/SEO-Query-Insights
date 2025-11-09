@@ -147,7 +147,13 @@ export function ClusterCard({
       </div>
 
       {/* Metrics Summary */}
-      <MetricsSummary metrics={cluster.metrics} queryCount={cluster.queryCount} />
+      <MetricsSummary
+        queryCount={cluster.queryCount}
+        metricsImpressions={cluster.metricsImpressions}
+        metricsClicks={cluster.metricsClicks}
+        metricsCtr={cluster.metricsCtr}
+        metricsAvgPosition={cluster.metricsAvgPosition}
+      />
 
       {/* Queries Table */}
       <div className="mt-4">

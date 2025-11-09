@@ -1,4 +1,4 @@
-import type { GroupMetricsDto, QueryDto } from "../types";
+import type { AggregatedMetrics, QueryDto } from "../types";
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
@@ -9,7 +9,7 @@ function toValidNumber(value: unknown): number {
 }
 
 export function calculateGroupMetricsFromQueries(queries: QueryDto[]): {
-  metrics: GroupMetricsDto;
+  metrics: AggregatedMetrics;
   queryCount: number;
 } {
   if (!queries || queries.length === 0) {

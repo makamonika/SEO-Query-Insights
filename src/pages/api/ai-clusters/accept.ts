@@ -1,22 +1,10 @@
 import type { APIRoute } from "astro";
 import type { ErrorResponse, AcceptClustersResponseDto } from "../../../types";
 import { acceptClustersRequestSchema } from "../_schemas/aiCluster";
-import { acceptClusters } from "../../../lib/ai-clusters/service";
+import { acceptClusters } from "../../../lib/services/ai-clusters.service";
 import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "../../../lib/auth/utils";
 
 export const prerender = false;
-/**
- * POST /api/ai-clusters/accept
- * Accepts AI cluster suggestions and persists them as groups with ai_generated = true.
- *
- * Request body:
- * {
- *   clusters: [{ name: string, queryTexts: string[] }, ...]
- * }
- *
- * Response: AcceptClustersResponseDto with created groups
- *
- */
 
 export const POST: APIRoute = async ({ locals, request }) => {
   let userId: string;

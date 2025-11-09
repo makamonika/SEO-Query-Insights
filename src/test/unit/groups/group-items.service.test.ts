@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { addGroupItems, removeGroupItem, getGroupItems, GroupNotFoundError } from "@/lib/group-items/service";
+import { addGroupItems, removeGroupItem, getGroupItems, GroupNotFoundError } from "@/lib/services/group-items.service";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
 import {
@@ -9,7 +9,7 @@ import {
 } from "../../utils/mockSupabaseClient";
 
 // Mock dependencies
-vi.mock("@/lib/group-metrics/service", () => ({
+vi.mock("@/lib/services/group-metrics.service", () => ({
   recomputeAndPersistGroupMetrics: vi.fn().mockResolvedValue({
     metrics: { impressions: 1000, clicks: 50, ctr: 0.05, avgPosition: 5.5 },
     queryCount: 2,

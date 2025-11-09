@@ -1,14 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Tables } from "../../db/database.types";
-import type { GroupMetricsDto } from "../../types";
 import { QUERIES_COLUMNS } from "../db/projections";
 import { mapQueryRowToDto } from "../mappers";
 import { calculateGroupMetricsFromQueries } from "../metrics";
-
-export interface RecomputeResult {
-  queryCount: number;
-  metrics: GroupMetricsDto;
-}
+import type { AggregatedMetrics, RecomputeResult } from "@/types";
 
 export async function recomputeAndPersistGroupMetrics(
   supabase: SupabaseClient<Database>,
@@ -58,7 +53,7 @@ export async function recomputeAndPersistGroupMetrics(
 
 export function extractPersistedMetrics(row: any): RecomputeResult {
   const queryCount = Number(row?.query_count ?? 0);
-  const metrics: GroupMetricsDto = {
+  const metrics: AggregatedMetrics = {
     impressions: Number(row?.metrics_impressions ?? 0),
     clicks: Number(row?.metrics_clicks ?? 0),
     ctr: Number(row?.metrics_ctr ?? 0),

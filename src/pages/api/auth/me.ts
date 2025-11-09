@@ -6,7 +6,7 @@
 
 import type { APIRoute } from "astro";
 import { createSupabaseServerInstance } from "@/db/supabase.client";
-import { getCurrentUser } from "@/lib/auth/service";
+import { getCurrentUser } from "@/lib/auth/auth.service";
 import type { ErrorResponse } from "@/types";
 
 export const prerender = false;

@@ -23,7 +23,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
 import type { ErrorResponse, ImportRunResultDto } from "../../types";
 import { buildDailyImportUrl, ImportConfig } from "../../lib/imports/config";
-import { runImport } from "../../lib/imports/service";
+import { runImport } from "../../lib/services/import.service";
 
 export const prerender = false;
 

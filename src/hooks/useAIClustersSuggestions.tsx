@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, useCallback, type ReactNode } from "react";
 import { toast } from "sonner";
-import type { AiClusterSuggestionDto, GroupMetricsDto, AcceptClustersRequestDto, QueryDto } from "@/types";
+import type { AiClusterSuggestionDto, AcceptClustersRequestDto, QueryDto } from "@/types";
 
 // ============================================================================
 // Types
@@ -14,7 +14,10 @@ export interface AIClusterViewModel {
   name: string;
   queries: QueryDto[];
   queryCount: number;
-  metrics: GroupMetricsDto;
+  metricsImpressions: number;
+  metricsClicks: number;
+  metricsCtr: number;
+  metricsAvgPosition: number;
   isDirty?: boolean; // Tracks if user has edited this cluster
 }
 
@@ -178,7 +181,10 @@ function toViewModel(suggestion: AiClusterSuggestionDto): AIClusterViewModel {
     name: suggestion.name,
     queries: suggestion.queries,
     queryCount: suggestion.queryCount,
-    metrics: suggestion.metrics,
+    metricsImpressions: suggestion.metricsImpressions,
+    metricsClicks: suggestion.metricsClicks,
+    metricsCtr: suggestion.metricsCtr,
+    metricsAvgPosition: suggestion.metricsAvgPosition,
     isDirty: false,
   };
 }

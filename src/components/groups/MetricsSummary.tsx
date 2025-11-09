@@ -1,16 +1,24 @@
 import { formatNumber, formatCTR } from "@/lib/table-utils.tsx";
-import type { GroupMetricsDto } from "@/types";
 
 export interface MetricsSummaryProps {
-  metrics: GroupMetricsDto;
   queryCount: number;
+  metricsImpressions: number;
+  metricsClicks: number;
+  metricsCtr: number;
+  metricsAvgPosition: number;
 }
 
 /**
  * Displays aggregated metrics for a group in compact stat cards
  * Consistent formatting with queries table
  */
-export function MetricsSummary({ metrics, queryCount }: MetricsSummaryProps) {
+export function MetricsSummary({
+  queryCount,
+  metricsImpressions,
+  metricsClicks,
+  metricsCtr,
+  metricsAvgPosition,
+}: MetricsSummaryProps) {
   const stats = [
     {
       label: "Queries",
@@ -18,19 +26,19 @@ export function MetricsSummary({ metrics, queryCount }: MetricsSummaryProps) {
     },
     {
       label: "Impressions",
-      value: formatNumber(metrics.impressions),
+      value: formatNumber(metricsImpressions),
     },
     {
       label: "Clicks",
-      value: formatNumber(metrics.clicks),
+      value: formatNumber(metricsClicks),
     },
     {
       label: "CTR",
-      value: formatCTR(metrics.ctr),
+      value: formatCTR(metricsCtr),
     },
     {
       label: "Avg Position",
-      value: formatNumber(metrics.avgPosition, 1),
+      value: formatNumber(metricsAvgPosition, 1),
     },
   ];
 

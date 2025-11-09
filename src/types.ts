@@ -220,30 +220,12 @@ export interface UpdateGroupRequestDto {
   aiGenerated?: boolean;
 }
 
-/**
- * Aggregated metrics for a group
- */
-export interface GroupMetricsDto {
-  impressions: number;
-  clicks: number;
-  ctr: number;
-  avgPosition: number;
-}
-
-/**
- * Group with computed metrics and query count
- */
-export type GroupWithMetricsDto = GroupDto & {
-  queryCount: number;
-  metrics: GroupMetricsDto;
-};
-
 export interface GetGroupsResponseDto {
-  data: GroupWithMetricsDto[];
+  data: GroupDto[];
   meta: PaginationMeta;
 }
 
-export type GetGroupByIdResponseDto = GroupWithMetricsDto;
+export type GetGroupByIdResponseDto = GroupDto;
 
 // ============================================================================
 // 5. Group Item DTOs
@@ -283,7 +265,10 @@ export interface AiClusterSuggestionDto {
   name: string;
   queries: QueryDto[];
   queryCount: number;
-  metrics: GroupMetricsDto;
+  metricsImpressions: number;
+  metricsClicks: number;
+  metricsCtr: number;
+  metricsAvgPosition: number;
 }
 
 /**
@@ -308,7 +293,19 @@ export interface AcceptClustersRequestDto {
  * Returns the newly created groups (now persisted in database)
  */
 export interface AcceptClustersResponseDto {
-  groups: GroupWithMetricsDto[];
+  groups: GroupDto[];
+}
+
+export interface AggregatedMetrics {
+  impressions: number;
+  clicks: number;
+  ctr: number;
+  avgPosition: number;
+}
+
+export interface RecomputeResult {
+  queryCount: number;
+  metrics: AggregatedMetrics;
 }
 
 // ============================================================================

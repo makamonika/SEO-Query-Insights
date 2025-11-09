@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { createGroup, updateGroup, deleteGroup, getGroupById, DuplicateGroupNameError } from "@/lib/groups/service";
+import {
+  createGroup,
+  updateGroup,
+  deleteGroup,
+  getGroupById,
+  DuplicateGroupNameError,
+} from "@/lib/services/groups.service";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
 import {
@@ -9,11 +15,11 @@ import {
 } from "../../utils/mockSupabaseClient";
 
 // Mock dependencies
-vi.mock("@/lib/group-items/service", () => ({
+vi.mock("@/lib/services/group-items.service", () => ({
   addGroupItems: vi.fn().mockResolvedValue({ addedCount: 2 }),
 }));
 
-vi.mock("@/lib/group-metrics/service", () => ({
+vi.mock("@/lib/services/group-metrics.service", () => ({
   recomputeAndPersistGroupMetrics: vi.fn().mockResolvedValue({
     metrics: { impressions: 1000, clicks: 50, ctr: 0.05, avgPosition: 5.5 },
     queryCount: 2,
@@ -94,12 +100,10 @@ describe("Group Service", () => {
         id: "group-123",
         name: groupName,
         queryCount: 2,
-        metrics: {
-          impressions: 1000,
-          clicks: 50,
-          ctr: 0.05,
-          avgPosition: 5.5,
-        },
+        metricsImpressions: 1000,
+        metricsClicks: 50,
+        metricsCtr: 0.05,
+        metricsAvgPosition: 5.5,
       });
     });
 
@@ -136,12 +140,10 @@ describe("Group Service", () => {
         id: "group-456",
         name: groupName,
         queryCount: 0,
-        metrics: {
-          impressions: 0,
-          clicks: 0,
-          ctr: 0,
-          avgPosition: 0,
-        },
+        metricsImpressions: 0,
+        metricsClicks: 0,
+        metricsCtr: 0,
+        metricsAvgPosition: 0,
       });
     });
 

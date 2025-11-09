@@ -228,7 +228,13 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
         />
 
         {/* Metrics Summary */}
-        <MetricsSummary metrics={group.metrics} queryCount={group.queryCount} />
+        <MetricsSummary
+          queryCount={group.queryCount}
+          metricsImpressions={group.metricsImpressions}
+          metricsClicks={group.metricsClicks}
+          metricsCtr={group.metricsCtr}
+          metricsAvgPosition={group.metricsAvgPosition}
+        />
 
         {/* Member Queries Table */}
         <div className="space-y-4">

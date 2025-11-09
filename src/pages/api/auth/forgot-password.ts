@@ -6,7 +6,7 @@
 
 import type { APIRoute } from "astro";
 import { createSupabaseServerInstance } from "@/db/supabase.client";
-import { sendPasswordReset } from "@/lib/auth/service";
+import { sendPasswordReset } from "@/lib/auth/auth.service";
 import { forgotPasswordSchema } from "./_schemas";
 import type { ErrorResponse, ForgotPasswordResponseDto } from "@/types";
 

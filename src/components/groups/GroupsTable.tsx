@@ -6,11 +6,11 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Eye, Pencil, Trash2, Check, X } from "lucide-react";
 import { formatNumber, formatCTR, formatDate, getSortIcon, getNextSortState } from "@/lib/table-utils.tsx";
-import type { GroupWithMetricsDto, SortOrder } from "@/types";
+import type { GroupDto, SortOrder } from "@/types";
 import type { GroupSortField } from "@/hooks/useGroups";
 
 type GroupsTableProps = {
-  rows: GroupWithMetricsDto[];
+  rows: GroupDto[];
   isLoading: boolean;
   sortBy: GroupSortField;
   order: SortOrder;
@@ -47,7 +47,7 @@ export const GroupsTable = memo(function GroupsTable({
     onSortChange(nextState);
   };
 
-  const handleEditStart = (group: GroupWithMetricsDto) => {
+  const handleEditStart = (group: GroupDto) => {
     setEditingId(group.id);
     setEditingName(group.name);
   };
@@ -189,10 +189,10 @@ export const GroupsTable = memo(function GroupsTable({
                   )}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">{formatNumber(group.queryCount)}</TableCell>
-                <TableCell className="text-right tabular-nums">{formatNumber(group.metrics.impressions)}</TableCell>
-                <TableCell className="text-right tabular-nums">{formatNumber(group.metrics.clicks)}</TableCell>
-                <TableCell className="text-right tabular-nums">{formatCTR(group.metrics.ctr)}</TableCell>
-                <TableCell className="text-right tabular-nums">{formatNumber(group.metrics.avgPosition, 1)}</TableCell>
+                <TableCell className="text-right tabular-nums">{formatNumber(group.metricsImpressions)}</TableCell>
+                <TableCell className="text-right tabular-nums">{formatNumber(group.metricsClicks)}</TableCell>
+                <TableCell className="text-right tabular-nums">{formatCTR(group.metricsCtr)}</TableCell>
+                <TableCell className="text-right tabular-nums">{formatNumber(group.metricsAvgPosition, 1)}</TableCell>
                 <TableCell className="text-muted-foreground">{formatDate(group.createdAt)}</TableCell>
                 <TableCell className="text-right">
                   {isDeleteConfirm ? (

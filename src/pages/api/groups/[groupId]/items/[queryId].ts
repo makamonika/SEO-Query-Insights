@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
-import type { ErrorResponse } from "../../../../../types";
 import { deleteItemParamsSchema } from "../../../_schemas/groupItem";
-import { removeGroupItem, GroupNotFoundError } from "../../../../../lib/group-items/service";
 import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "../../../../../lib/auth/utils";
+import { GroupNotFoundError, removeGroupItem } from "@/lib/services/group-items.service";
+import type { ErrorResponse } from "@/types";
 
 export const prerender = false;
 /**

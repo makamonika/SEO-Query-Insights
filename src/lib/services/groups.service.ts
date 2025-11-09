@@ -1,10 +1,10 @@
 import type { Tables } from "../../db/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../../db/database.types";
-import type { GroupWithMetricsDto } from "../../types";
+import type { GroupDto } from "../../types";
 import { mapGroupRowBase } from "../mappers";
-import { addGroupItems } from "../group-items/service";
-import { extractPersistedMetrics, recomputeAndPersistGroupMetrics } from "../group-metrics/service";
+import { recomputeAndPersistGroupMetrics } from "./group-metrics.service";
+import { addGroupItems } from "./group-items.service";
 
 type GroupRow = Tables<"groups">;
 
@@ -18,7 +18,7 @@ export async function listGroups(
     order?: "asc" | "desc";
     search?: string;
   }
-): Promise<{ data: GroupWithMetricsDto[]; total: number }> {
+): Promise<{ data: GroupDto[]; total: number }> {
   // Fetch groups owned by the user; metrics aggregation to be added next
   // Map sort fields to DB columns
   const sortColumn = opts.sortBy === "name" ? "name" : opts.sortBy === "aiGenerated" ? "ai_generated" : "created_at";
@@ -44,25 +44,16 @@ export async function listGroups(
   }
 
   // Read persisted metrics from group rows (denormalized on write)
-  const enriched = data.map((row: any) => {
-    const base = mapGroupRowBase(row);
-    const { metrics, queryCount } = extractPersistedMetrics(row);
-    const dto: GroupWithMetricsDto = {
-      ...base,
-      queryCount,
-      metrics,
-    } as GroupWithMetricsDto;
-    return dto;
-  });
+  const groups: GroupDto[] = data.map((row) => mapGroupRowBase(row));
 
-  return { data: enriched, total: count ?? 0 };
+  return { data: groups, total: count ?? 0 };
 }
 
 export async function createGroup(
   supabase: SupabaseClient<Database>,
   userId: string,
   payload: { name: string; aiGenerated?: boolean; queryIds?: string[] }
-): Promise<GroupWithMetricsDto> {
+): Promise<GroupDto> {
   const name = payload.name.trim();
   if (name.length === 0) {
     throw new Error("Group name cannot be empty");
@@ -90,10 +81,16 @@ export async function createGroup(
     metricsResult = await recomputeAndPersistGroupMetrics(supabase, data.id);
   }
 
+  const baseGroup = mapGroupRowBase(data);
+  const { metrics, queryCount } = metricsResult;
+
   return {
-    ...mapGroupRowBase(data),
-    queryCount: metricsResult.queryCount,
-    metrics: metricsResult.metrics,
+    ...baseGroup,
+    queryCount,
+    metricsImpressions: metrics.impressions,
+    metricsClicks: metrics.clicks,
+    metricsCtr: metrics.ctr,
+    metricsAvgPosition: metrics.avgPosition,
   };
 }
 
@@ -101,7 +98,7 @@ export async function getGroupById(
   supabase: SupabaseClient<Database>,
   userId: string,
   groupId: string
-): Promise<GroupWithMetricsDto | null> {
+): Promise<GroupDto | null> {
   const { data, error } = await supabase
     .from("groups")
     .select("*")
@@ -116,13 +113,7 @@ export async function getGroupById(
     return null;
   }
 
-  const { metrics, queryCount } = extractPersistedMetrics(data as any);
-
-  return {
-    ...mapGroupRowBase(data),
-    queryCount,
-    metrics,
-  };
+  return mapGroupRowBase(data as GroupRow);
 }
 
 export async function updateGroup(
@@ -130,7 +121,7 @@ export async function updateGroup(
   userId: string,
   groupId: string,
   patch: { name?: string; aiGenerated?: boolean }
-): Promise<GroupWithMetricsDto | null> {
+): Promise<GroupDto | null> {
   const updates: Partial<GroupRow> = {};
   if (patch.name !== undefined) updates.name = patch.name.trim();
   if (patch.aiGenerated !== undefined) updates.ai_generated = patch.aiGenerated;
@@ -155,13 +146,7 @@ export async function updateGroup(
     return null;
   }
 
-  const { metrics, queryCount } = extractPersistedMetrics(data as any);
-
-  return {
-    ...mapGroupRowBase(data),
-    queryCount,
-    metrics,
-  };
+  return mapGroupRowBase(data as GroupRow);
 }
 
 export async function deleteGroup(

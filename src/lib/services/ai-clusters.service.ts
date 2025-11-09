@@ -1,12 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database, Tables } from "../../db/database.types";
-import type { AiClusterSuggestionDto, GroupWithMetricsDto, AcceptClusterDto, QueryDto } from "../../types";
+import type { AiClusterSuggestionDto, AcceptClusterDto, QueryDto, GroupDto } from "../../types";
 import { QUERIES_COLUMNS } from "../db/projections";
 import { calculateGroupMetricsFromQueries } from "../metrics";
 import { mapQueryRowToDto, mapGroupRowBase } from "../mappers";
-import { OpenRouterService, OpenRouterError } from "../services/openrouter.service";
-import type { JsonSchemaConfig } from "../services/openrouter.types";
-import { recomputeAndPersistGroupMetrics } from "../group-metrics/service";
+import { OpenRouterService, OpenRouterError } from "./openrouter.service";
+import type { JsonSchemaConfig } from "./openrouter.types";
+import { recomputeAndPersistGroupMetrics } from "./group-metrics.service";
 
 /**
  * AI Clusters Service
@@ -285,7 +285,10 @@ export async function generateClusters(
           name: cluster.name,
           queries: clusterQueries,
           queryCount,
-          metrics,
+          metricsImpressions: metrics.impressions,
+          metricsClicks: metrics.clicks,
+          metricsCtr: metrics.ctr,
+          metricsAvgPosition: metrics.avgPosition,
         });
       } else {
         filteredOutCount++;
@@ -333,8 +336,8 @@ export async function acceptClusters(
   supabase: SupabaseClient<Database>,
   userId: string,
   clustersToAccept: AcceptClusterDto[]
-): Promise<GroupWithMetricsDto[]> {
-  const createdGroups: GroupWithMetricsDto[] = [];
+): Promise<GroupDto[]> {
+  const createdGroups: GroupDto[] = [];
 
   // Step 1: Create groups and their items
   for (const cluster of clustersToAccept) {
@@ -369,12 +372,17 @@ export async function acceptClusters(
 
     // Persist and read metrics for the created group
     const { metrics, queryCount } = await recomputeAndPersistGroupMetrics(supabase, groupData.id);
-
-    createdGroups.push({
-      ...mapGroupRowBase(groupData),
+    const baseGroup = mapGroupRowBase(groupData);
+    const created: GroupDto = {
+      ...baseGroup,
       queryCount,
-      metrics,
-    } as GroupWithMetricsDto);
+      metricsImpressions: metrics.impressions,
+      metricsClicks: metrics.clicks,
+      metricsCtr: metrics.ctr,
+      metricsAvgPosition: metrics.avgPosition,
+    };
+
+    createdGroups.push(created);
   }
 
   // Step 2: Log user action

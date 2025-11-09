@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import type { ErrorResponse, AiClusterSuggestionDto } from "../../../types";
-import { generateClusters } from "../../../lib/ai-clusters/service";
+import { generateClusters } from "../../../lib/services/ai-clusters.service";
 import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "../../../lib/auth/utils";
 
 export const prerender = false;

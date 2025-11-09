@@ -6,7 +6,7 @@
 
 import type { APIRoute } from "astro";
 import { createSupabaseServerInstance } from "@/db/supabase.client";
-import { registerUser } from "@/lib/auth/service";
+import { registerUser } from "@/lib/auth/auth.service";
 import { setAuthCookies } from "@/lib/auth/session";
 import { registerSchema } from "./_schemas";
 import type { ErrorResponse, RegisterResponseDto } from "@/types";
