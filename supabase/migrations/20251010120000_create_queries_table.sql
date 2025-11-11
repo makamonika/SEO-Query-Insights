@@ -48,21 +48,21 @@ create index idx_queries_url on queries(url);
 
 -- enable row level security on queries table
 -- this ensures all access is controlled by rls policies
--- alter table queries enable row level security;
+alter table queries enable row level security;
 
 -- rls policy: authenticated users can view all queries (shared dataset)
 -- rationale: query data is shared across the team, all authenticated users need read access
--- create policy "queries_select_authenticated" 
--- on queries for select 
--- to authenticated 
--- using (true);
+create policy "queries_select_authenticated" 
+on queries for select 
+to authenticated 
+using (true);
 
 -- rls policy: authenticated users can import queries (manual import)
 -- rationale: all authenticated users can import query data via manual import process
--- create policy "queries_insert_authenticated" 
--- on queries for insert 
--- to authenticated 
--- with check (true);
+create policy "queries_insert_authenticated" 
+on queries for insert 
+to authenticated 
+with check (true);
 
 -- note: no update or delete policies for regular users to ensure data immutability
 

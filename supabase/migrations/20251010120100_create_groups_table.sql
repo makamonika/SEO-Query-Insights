@@ -36,34 +36,34 @@ create index idx_groups_user_created on groups(user_id, created_at desc);
 
 -- enable row level security on groups table
 -- ensures users can only access their own groups
--- alter table groups enable row level security;
+alter table groups enable row level security;
 
 -- rls policy: users can view only their own groups (both manual and ai-generated)
 -- rationale: groups are private to each user
--- create policy "groups_select_own" 
--- on groups for select 
--- to authenticated 
--- using (auth.uid() = user_id);
+create policy "groups_select_own" 
+on groups for select 
+to authenticated 
+using (auth.uid() = user_id);
 
 -- rls policy: users can create their own groups (both manual and ai-generated)
 -- rationale: users need to create groups manually or when accepting ai suggestions
--- create policy "groups_insert_own" 
--- on groups for insert 
--- to authenticated 
--- with check (auth.uid() = user_id);
+create policy "groups_insert_own" 
+on groups for insert 
+to authenticated 
+with check (auth.uid() = user_id);
 
 -- rls policy: users can update their own groups (both manual and ai-generated)
 -- rationale: users can rename or modify their groups
--- create policy "groups_update_own" 
--- on groups for update 
--- to authenticated 
--- using (auth.uid() = user_id)
--- with check (auth.uid() = user_id);
+create policy "groups_update_own" 
+on groups for update 
+to authenticated 
+using (auth.uid() = user_id)
+with check (auth.uid() = user_id);
 
 -- rls policy: users can delete their own groups (both manual and ai-generated)
 -- rationale: users can remove groups they no longer need
--- create policy "groups_delete_own" 
--- on groups for delete 
--- to authenticated 
--- using (auth.uid() = user_id);
+create policy "groups_delete_own" 
+on groups for delete 
+to authenticated 
+using (auth.uid() = user_id);
 

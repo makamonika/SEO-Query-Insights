@@ -37,22 +37,28 @@ create index idx_user_actions_user_occurred on user_actions(user_id, occurred_at
 
 -- enable row level security on user_actions table
 -- ensures proper access control for action logging and analytics
--- alter table user_actions enable row level security;
+alter table user_actions enable row level security;
 
 -- rls policy: users can insert their own actions
 -- rationale: users need to log their own actions for analytics tracking
--- create policy "user_actions_insert_own" 
--- on user_actions for insert 
--- to authenticated 
--- with check (auth.uid() = user_id);
+create policy "user_actions_insert_own" 
+on user_actions for insert 
+to authenticated 
+with check (auth.uid() = user_id);
 
--- rls policy: only service role can read actions (for analytics)
+-- rls policy: users can view their own actions
+-- rationale: users should be able to see their own action history
+create policy "user_actions_select_own" 
+on user_actions for select 
+to authenticated 
+using (auth.uid() = user_id);
+
+-- rls policy: service role can read all actions (for analytics)
 -- rationale: analytics and reporting are done via service role queries
--- users should not be able to read action logs directly
--- create policy "user_actions_select_service_role" 
--- on user_actions for select 
--- to service_role 
--- using (true);
+create policy "user_actions_select_service_role" 
+on user_actions for select 
+to service_role 
+using (true);
 
 -- note: no update or delete policies as actions are immutable for audit trail integrity
 
