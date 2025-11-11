@@ -142,26 +142,54 @@ Create a `.env` file in the project root and configure the following variables:
 
 ```env
 # Supabase Configuration
-PUBLIC_SUPABASE_URL=your_supabase_url
-PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_URL=your_supabase_url
+SUPABASE_KEY=your_supabase_key
 
 # Openrouter AI Configuration
 OPENROUTER_API_KEY=your_openrouter_api_key
 
 # Internal API Configuration
-INTERNAL_API_URL=your_internal_api_url
+IMPORT_SOURCE_BASE_URL=import_source_base_url
 ```
 
 ### 5. Supabase Setup
 
-1. Create a new Supabase project
-2. Set up authentication (email/password)
-3. Configure database schema for:
-   - User accounts
-   - Query data storage
-   - User-created groups
-   - AI-generated clusters
-4. Update environment variables with your Supabase credentials
+#### Local Development
+
+1. Ensure Docker is installed and running on your machine
+2. Start the local Supabase instance:
+   ```bash
+   supabase start
+   ```
+   This automatically:
+   - Creates a local PostgreSQL database
+   - Applies all migrations from `supabase/migrations/`
+   - Enables email/password authentication
+   - Starts Supabase Studio at `http://localhost:54323`
+
+3. Update your `.env` file with local Supabase credentials:
+   ```env
+   SUPABASE_URL=http://localhost:54321
+   SUPABASE_KEY=your_supabase_key
+   ```
+   The key will be printed in the terminal when you run `supabase start`
+
+#### Remote Deployment (Production)
+
+1. Create a new Supabase project at [supabase.com](https://supabase.com)
+2. Set up authentication:
+   - Enable email/password provider
+   - Configure email confirmations
+   - Set appropriate JWT expiry times
+3. Apply migrations to your remote database:
+   ```bash
+   supabase db push --linked
+   ```
+4. Update your production `.env` file with remote credentials:
+   ```env
+   SUPABASE_URL=your_remote_supabase_url
+   SUPABASE_KEY=your_remote_supabase_key
+   ```
 
 ### 6. Start Development Server
 
@@ -182,6 +210,14 @@ The application will be available at `http://localhost:4321` (default Astro port
 | `npm run lint` | Run ESLint to check code quality |
 | `npm run lint:fix` | Run ESLint and automatically fix issues |
 | `npm run format` | Format code with Prettier |
+| `npm run test` | Run unit and integration tests with Vitest |
+| `npm run test:watch` | Run tests in watch mode |
+| `npm run test:ui` | Run tests with Vitest UI |
+| `npm run test:coverage` | Generate code coverage report |
+| `npm run test:e2e` | Run end-to-end tests with Playwright |
+| `npm run test:e2e:ui` | Run E2E tests with Playwright UI |
+| `npm run test:e2e:debug` | Run E2E tests in debug mode |
+| `npm run dev:e2e` | Start dev server in test mode for E2E testing |
 
 ## Project Scope
 
