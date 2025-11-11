@@ -26,15 +26,26 @@ export async function recomputeAndPersistGroupMetrics(
     throw new Error(`Failed to fetch items for metrics: ${error.message}`);
   }
 
+  interface GroupItemRow {
+    query_id: string;
+    queries: Tables<"queries"> | null;
+  }
+
   const queries = (data ?? [])
-    .map((row) => (row as any).queries)
+    .map((row) => (row as unknown as GroupItemRow).queries)
     .filter((q): q is Tables<"queries"> => q != null)
     .map((q) => mapQueryRowToDto(q));
 
   const { metrics, queryCount } = calculateGroupMetricsFromQueries(queries);
 
   // Persist on the group row (columns must exist in DB schema)
-  const updatePayload: any = {
+  const updatePayload: {
+    metrics_impressions: number;
+    metrics_clicks: number;
+    metrics_ctr: number;
+    metrics_avg_position: number;
+    query_count: number;
+  } = {
     metrics_impressions: metrics.impressions,
     metrics_clicks: metrics.clicks,
     metrics_ctr: metrics.ctr,
@@ -51,7 +62,13 @@ export async function recomputeAndPersistGroupMetrics(
   return { metrics, queryCount };
 }
 
-export function extractPersistedMetrics(row: any): RecomputeResult {
+export function extractPersistedMetrics(row: {
+  query_count?: number | null;
+  metrics_impressions?: number | null;
+  metrics_clicks?: number | null;
+  metrics_ctr?: number | null;
+  metrics_avg_position?: number | null;
+}): RecomputeResult {
   const queryCount = Number(row?.query_count ?? 0);
   const metrics: AggregatedMetrics = {
     impressions: Number(row?.metrics_impressions ?? 0),

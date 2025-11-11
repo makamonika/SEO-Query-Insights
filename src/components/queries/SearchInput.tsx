@@ -1,11 +1,11 @@
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
 
-type SearchInputProps = {
+interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
-};
+}
 
 export function SearchInput({ value, onChange, placeholder = "Search queries..." }: SearchInputProps) {
   return (

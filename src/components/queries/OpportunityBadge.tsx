@@ -1,9 +1,9 @@
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp } from "lucide-react";
 
-type OpportunityBadgeProps = {
+interface OpportunityBadgeProps {
   isOpportunity: boolean;
-};
+}
 
 /**
  * Visual indicator for opportunity queries (high impressions, low CTR)

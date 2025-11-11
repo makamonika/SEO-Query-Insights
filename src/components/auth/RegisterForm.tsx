@@ -170,7 +170,6 @@ export function RegisterForm() {
           aria-invalid={!!fieldErrors.email}
           aria-describedby={fieldErrors.email ? "email-error" : undefined}
           autoComplete="email"
-          autoFocus
         />
         {fieldErrors.email && (
           <p id="email-error" className="text-sm text-destructive" role="alert">

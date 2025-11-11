@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import type { GetGroupsResponseDto, GroupDto, SortOrder, PaginationMeta, PaginationParams } from "@/types";
 
@@ -32,6 +32,7 @@ export function useGroups(params: UseGroupsParams): UseGroupsResult {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
+  const hasLoadedRef = useRef<boolean>(false);
 
   const refetch = () => {
     setRefetchTrigger((prev) => prev + 1);
@@ -41,8 +42,8 @@ export function useGroups(params: UseGroupsParams): UseGroupsResult {
     let isCancelled = false;
 
     const fetchGroups = async () => {
-      // Only show loading on first load or when we don't have data
-      if (data.length === 0) {
+      // Only show loading on first load (tracked by hasLoadedRef) to avoid flashing loader on subsequent refetches
+      if (!hasLoadedRef.current) {
         setIsLoading(true);
       }
       setError(null);
@@ -85,6 +86,7 @@ export function useGroups(params: UseGroupsParams): UseGroupsResult {
         if (!isCancelled) {
           setData(result.data);
           setMeta(result.meta);
+          hasLoadedRef.current = true;
         }
       } catch (err) {
         if (!isCancelled) {

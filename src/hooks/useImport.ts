@@ -2,13 +2,13 @@ import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import type { ImportRunResultDto } from "@/types";
 
-export type UseImportResult = {
+export interface UseImportResult {
   isImporting: boolean;
   lastImportAt?: string;
   hasFailed: boolean;
   handleImport: () => Promise<void>;
   setLastImportAt: (date: string | undefined) => void;
-};
+}
 
 /**
  * Custom hook to manage data import operations

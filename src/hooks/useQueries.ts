@@ -97,7 +97,16 @@ export function useQueries(params: UseQueriesParams): UseQueriesResult {
     return () => {
       isCancelled = true;
     };
-  }, [params.search, params.isOpportunity, params.sortBy, params.order, params.limit, params.offset, refetchTrigger]);
+  }, [
+    params.search,
+    params.isOpportunity,
+    params.sortBy,
+    params.order,
+    params.limit,
+    params.offset,
+    refetchTrigger,
+    data.length,
+  ]);
 
   return { data, meta, isLoading, error, refetch };
 }

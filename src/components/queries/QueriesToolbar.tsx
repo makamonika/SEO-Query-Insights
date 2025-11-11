@@ -3,7 +3,7 @@ import { OpportunityToggle } from "./OpportunityToggle";
 import { GroupWithAIButton } from "./GroupWithAIButton";
 import { NewGroupButton } from "./NewGroupButton";
 
-type QueriesToolbarProps = {
+interface QueriesToolbarProps {
   // Search & Filter
   search: string;
   isOpportunity: boolean;
@@ -17,7 +17,7 @@ type QueriesToolbarProps = {
   onOpenNewGroup: () => void;
   onGenerateAI: () => void;
   isGeneratingAI: boolean;
-};
+}
 
 /**
  * Toolbar for queries with search, filters, and actions

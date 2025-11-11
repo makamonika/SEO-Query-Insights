@@ -38,7 +38,7 @@ function ClustersPageContent() {
     if (clusters.length === 0 && !isGenerating) {
       generate();
     }
-  }, []); // Only run once on mount
+  }, []);
 
   // Validation: check if selected clusters are valid
   const hasValidSelection = useMemo(() => {

@@ -117,7 +117,6 @@ export function LoginForm() {
           aria-invalid={!!fieldErrors.email}
           aria-describedby={fieldErrors.email ? "email-error" : undefined}
           autoComplete="email"
-          autoFocus
         />
         {fieldErrors.email && (
           <p id="email-error" className="text-sm text-destructive" role="alert">
@@ -178,7 +177,7 @@ export function LoginForm() {
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        Don't have an account?{" "}
+        Don&apos;t have an account?{" "}
         <a
           href="/register"
           className="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"

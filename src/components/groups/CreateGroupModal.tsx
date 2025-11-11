@@ -13,14 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import type { CreateGroupRequestDto, QueryDto } from "@/types";
 
-type CreateGroupModalProps = {
+interface CreateGroupModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreate: (payload: CreateGroupRequestDto) => Promise<void>;
   isSubmitting: boolean;
   error?: string;
   queries: QueryDto[];
-};
+}
 
 export function CreateGroupModal({
   open,
@@ -59,7 +59,7 @@ export function CreateGroupModal({
 
     try {
       await onCreate({ name: trimmedName, aiGenerated: false });
-    } catch (err) {
+    } catch {
       // Error handling is done in parent component
       // This catch prevents unhandled promise rejection
     }
@@ -91,7 +91,6 @@ export function CreateGroupModal({
                 aria-label="Group name"
                 aria-invalid={!!displayError}
                 aria-describedby={displayError ? "name-error" : undefined}
-                autoFocus
               />
               {displayError && (
                 <p id="name-error" className="text-sm text-destructive" role="alert">

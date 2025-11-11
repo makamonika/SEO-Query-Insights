@@ -13,9 +13,12 @@ import type { UserDto } from "@/types";
  * Transform Supabase User to UserDto
  */
 function mapUserToDto(user: User): UserDto {
+  if (!user.email) {
+    throw new Error("User email is required");
+  }
   return {
     id: user.id,
-    email: user.email!,
+    email: user.email,
     createdAt: user.created_at,
   };
 }

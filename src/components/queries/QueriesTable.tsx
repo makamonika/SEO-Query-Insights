@@ -156,13 +156,13 @@ export const QueriesTable = memo(function QueriesTable({
           }}
         >
           {(isAutoHeight ? rows : virtualizer.getVirtualItems().map((v) => rows[v.index])).map((row, index) => {
-            const isSelected = hasSelection && selected!.has(row.id);
+            const isSelected = (hasSelection && selected?.has(row.id)) ?? false;
             const virtualRow = isAutoHeight ? null : virtualizer.getVirtualItems()[index];
 
             return (
               <div
                 key={row.id}
-                data-index={isAutoHeight ? index : virtualRow!.index}
+                data-index={isAutoHeight ? index : (virtualRow?.index ?? index)}
                 ref={isAutoHeight ? undefined : virtualizer.measureElement}
                 className={`${isAutoHeight ? "" : "absolute top-0 left-0"} w-full ${gridColsClass} px-4 py-3 border-b text-sm hover:bg-muted/50 transition-all duration-200 ease-out ${
                   row.isOpportunity ? "bg-amber-50/50" : ""
@@ -172,7 +172,7 @@ export const QueriesTable = memo(function QueriesTable({
                   ...(isAutoHeight
                     ? {}
                     : {
-                        transform: `translateY(${virtualRow!.start}px)`,
+                        transform: `translateY(${virtualRow?.start ?? 0}px)`,
                         willChange: "transform",
                       }),
                 }}
@@ -180,11 +180,11 @@ export const QueriesTable = memo(function QueriesTable({
                 aria-label={row.queryText}
                 aria-selected={isSelected}
               >
-                {hasSelection && (
+                {hasSelection && onToggleRow && (
                   <div className="flex items-center justify-center" role="gridcell">
                     <Checkbox
                       checked={isSelected}
-                      onCheckedChange={() => onToggleRow!(row.id)}
+                      onCheckedChange={() => onToggleRow(row.id)}
                       aria-label={`Select query: ${row.queryText}`}
                     />
                   </div>

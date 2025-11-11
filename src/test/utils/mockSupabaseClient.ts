@@ -10,9 +10,7 @@ export interface PostgrestQueryBuilderMockOptions {
   maybeSingleResponses?: ResponseEntry[];
 }
 
-type PostgrestQueryBuilderMockInternal = {
-  [key: string]: ReturnType<typeof vi.fn>;
-} & {
+type PostgrestQueryBuilderMockInternal = Record<string, ReturnType<typeof vi.fn>> & {
   then: (
     onFulfilled?: (value: Record<string, unknown>) => unknown,
     onRejected?: (reason: unknown) => unknown

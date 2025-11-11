@@ -1,7 +1,7 @@
-type DataStatusLabelProps = {
+interface DataStatusLabelProps {
   lastImportAt?: string;
   status?: "idle" | "running" | "completed" | "failed";
-};
+}
 
 export function DataStatusLabel({ lastImportAt, status = "idle" }: DataStatusLabelProps) {
   // Show "No imports yet" if no successful import or if failed with no previous success

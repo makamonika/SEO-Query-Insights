@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Download, Loader2 } from "lucide-react";
 
-type ImportButtonProps = {
+interface ImportButtonProps {
   isImporting: boolean;
   onImport: () => void;
-};
+}
 
 export function ImportButton({ isImporting, onImport }: ImportButtonProps) {
   return (

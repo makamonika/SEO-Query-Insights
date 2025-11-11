@@ -82,7 +82,6 @@ export function ClusterCard({
                   aria-label="Cluster name"
                   aria-invalid={!!error}
                   className="text-xl font-bold h-auto py-2"
-                  autoFocus
                 />
                 <Button
                   size="icon"

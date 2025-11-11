@@ -30,7 +30,8 @@ export function GroupsPage() {
   // Calculate offset from current page
   const offset = (currentPage - 1) * pageSize;
 
-  // Row edit state
+  // Row edit state (managed by useGroupActions)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [editingId, setEditingId] = useState<string | null>(null);
 
   // Debounce search input

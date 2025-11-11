@@ -57,6 +57,23 @@ const reactConfig = tseslint.config({
 });
 
 export default tseslint.config(
+  {
+    ignores: [
+      // Config files
+      "**/*.config.{js,mjs,ts}",
+      "eslint.config.js",
+      // Generated files
+      "**/database.types.ts",
+      "**/*.d.ts",
+      // Build outputs
+      "dist/**",
+      ".astro/**",
+      // Test setup files
+      "src/test/setup.ts",
+      "src/test/e2e/fixtures/test.ts",
+      "src/test/e2e/setup/global-teardown.ts",
+    ],
+  },
   includeIgnoreFile(gitignorePath),
   baseConfig,
   jsxA11yConfig,

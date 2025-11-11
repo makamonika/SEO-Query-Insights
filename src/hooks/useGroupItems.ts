@@ -2,9 +2,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { QueryDto, ErrorResponse, GetGroupItemsResponseDto, PaginationMeta, PaginationParams } from "@/types";
 
-export interface UseGroupItemsParams extends PaginationParams {
-  // Additional params can be added here if needed in the future
-}
+export type UseGroupItemsParams = PaginationParams;
 
 /**
  * Custom hook to fetch all queries that are members of a group

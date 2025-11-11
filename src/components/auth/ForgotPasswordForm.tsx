@@ -83,7 +83,7 @@ export function ForgotPasswordForm() {
         </Alert>
 
         <div className="text-center space-y-2">
-          <p className="text-sm text-muted-foreground">Didn't receive the email? Check your spam folder.</p>
+          <p className="text-sm text-muted-foreground">Didn&apos;t receive the email? Check your spam folder.</p>
           <Button
             type="button"
             variant="ghost"
@@ -132,7 +132,6 @@ export function ForgotPasswordForm() {
           aria-invalid={!!fieldErrors.email}
           aria-describedby={fieldErrors.email ? "email-error" : undefined}
           autoComplete="email"
-          autoFocus
         />
         {fieldErrors.email && (
           <p id="email-error" className="text-sm text-destructive" role="alert">
@@ -140,7 +139,7 @@ export function ForgotPasswordForm() {
           </p>
         )}
         <p className="text-sm text-muted-foreground">
-          Enter your email address and we'll send you a link to reset your password.
+          Enter your email address and we&apos;ll send you a link to reset your password.
         </p>
       </div>
 

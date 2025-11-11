@@ -1,12 +1,12 @@
 import { SearchInput } from "@/components/queries/SearchInput";
 import { GroupWithAIButton } from "@/components/queries/GroupWithAIButton";
 
-type GroupsToolbarProps = {
+interface GroupsToolbarProps {
   search: string;
   onSearchChange: (value: string) => void;
   onGenerateAI: () => void;
   isGeneratingAI: boolean;
-};
+}
 
 export function GroupsToolbar({ search, onSearchChange, onGenerateAI, isGeneratingAI }: GroupsToolbarProps) {
   return (

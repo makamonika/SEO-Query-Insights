@@ -1,6 +1,6 @@
-type TableEmptyStateProps = {
+interface TableEmptyStateProps {
   message: string;
-};
+}
 
 export function TableEmptyState({ message }: TableEmptyStateProps) {
   return (

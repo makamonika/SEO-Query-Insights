@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Sparkles, Loader2 } from "lucide-react";
 
-type GroupWithAIButtonProps = {
+interface GroupWithAIButtonProps {
   onGenerate: () => void | Promise<void>;
   isGenerating: boolean;
-};
+}
 
 export function GroupWithAIButton({ onGenerate, isGenerating }: GroupWithAIButtonProps) {
   return (

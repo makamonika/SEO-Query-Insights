@@ -156,7 +156,6 @@ describe("SearchInput", () => {
     it("should handle unicode characters", async () => {
       const user = userEvent.setup();
       const mockOnChange = vi.fn();
-      const unicodeText = "こんにちは 🎉";
       render(<SearchInput value="" onChange={mockOnChange} />);
 
       const input = screen.getByRole("searchbox");

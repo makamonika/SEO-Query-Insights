@@ -1,6 +1,6 @@
-type LiveRegionProps = {
+interface LiveRegionProps {
   message?: string;
-};
+}
 
 /**
  * Visually hidden live region for screen reader announcements

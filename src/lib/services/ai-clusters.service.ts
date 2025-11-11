@@ -248,17 +248,11 @@ export async function generateClusters(
 
   // Flatten all clusters from all batches and convert to DTOs
   const allClusters: AiClusterSuggestionDto[] = [];
-  let totalClustersFromBatches = 0;
-  let filteredOutCount = 0;
   let invalidIdCount = 0;
   let notFoundIdCount = 0;
 
-  for (let batchIdx = 0; batchIdx < batchResults.length; batchIdx++) {
-    const batchResult = batchResults[batchIdx];
-
+  for (const batchResult of batchResults) {
     for (const cluster of batchResult.clusters) {
-      totalClustersFromBatches++;
-
       // Filter out invalid IDs (not UUID format)
       const validIds = cluster.queryIds.filter((id) => {
         if (!uuidRegex.test(id)) {
@@ -290,8 +284,6 @@ export async function generateClusters(
           metricsCtr: metrics.ctr,
           metricsAvgPosition: metrics.avgPosition,
         });
-      } else {
-        filteredOutCount++;
       }
     }
   }

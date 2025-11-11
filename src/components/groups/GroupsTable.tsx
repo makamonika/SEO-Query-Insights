@@ -9,7 +9,7 @@ import { formatNumber, formatCTR, formatDate, getSortIcon, getNextSortState } fr
 import type { GroupDto, SortOrder } from "@/types";
 import type { GroupSortField } from "@/hooks/useGroups";
 
-type GroupsTableProps = {
+interface GroupsTableProps {
   rows: GroupDto[];
   isLoading: boolean;
   sortBy: GroupSortField;
@@ -22,7 +22,7 @@ type GroupsTableProps = {
   // Loading states
   isRenamingId: string | null;
   isDeletingId: string | null;
-};
+}
 
 export const GroupsTable = memo(function GroupsTable({
   rows,
@@ -86,23 +86,21 @@ export const GroupsTable = memo(function GroupsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>
+              <TableHead aria-sort={sortBy === "name" ? (order === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
                   onClick={() => handleColumnHeaderClick("name")}
                   className="flex items-center hover:text-foreground"
-                  aria-sort={sortBy === "name" ? (order === "asc" ? "ascending" : "descending") : "none"}
                 >
                   Name
                   {getSortIcon(sortBy === "name", order)}
                 </button>
               </TableHead>
-              <TableHead>
+              <TableHead aria-sort={sortBy === "aiGenerated" ? (order === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
                   onClick={() => handleColumnHeaderClick("aiGenerated")}
                   className="flex items-center hover:text-foreground"
-                  aria-sort={sortBy === "aiGenerated" ? (order === "asc" ? "ascending" : "descending") : "none"}
                 >
                   AI
                   {getSortIcon(sortBy === "aiGenerated", order)}
@@ -113,12 +111,11 @@ export const GroupsTable = memo(function GroupsTable({
               <TableHead className="text-right">Clicks</TableHead>
               <TableHead className="text-right">CTR</TableHead>
               <TableHead className="text-right">Avg Position</TableHead>
-              <TableHead>
+              <TableHead aria-sort={sortBy === "createdAt" ? (order === "asc" ? "ascending" : "descending") : "none"}>
                 <button
                   type="button"
                   onClick={() => handleColumnHeaderClick("createdAt")}
                   className="flex items-center hover:text-foreground"
-                  aria-sort={sortBy === "createdAt" ? (order === "asc" ? "ascending" : "descending") : "none"}
                 >
                   Created
                   {getSortIcon(sortBy === "createdAt", order)}
@@ -152,7 +149,6 @@ export const GroupsTable = memo(function GroupsTable({
                           disabled={isRenaming}
                           aria-label="Group name"
                           className="h-8"
-                          autoFocus
                         />
                         <Button
                           size="sm"

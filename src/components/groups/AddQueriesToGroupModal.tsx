@@ -98,7 +98,7 @@ export function AddQueriesToGroupModal({
     try {
       await onAdd(Array.from(selected));
       // Close modal on success (parent will handle this via onOpenChange)
-    } catch (err) {
+    } catch {
       // Error handling is done in parent component
       // This catch prevents unhandled promise rejection
     }
@@ -109,7 +109,7 @@ export function AddQueriesToGroupModal({
       <DialogContent className="sm:max-w-[900px] max-h-[90vh] flex flex-col p-0">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle>Add Queries to Group</DialogTitle>
-          <DialogDescription>Search and select queries to add to "{groupName}"</DialogDescription>
+          <DialogDescription>Search and select queries to add to &quot;{groupName}&quot;</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">

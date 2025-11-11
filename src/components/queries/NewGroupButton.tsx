@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { FolderPlus } from "lucide-react";
 
-type NewGroupButtonProps = {
+interface NewGroupButtonProps {
   disabled?: boolean;
   onClick: () => void;
-};
+}
 
 export function NewGroupButton({ disabled, onClick }: NewGroupButtonProps) {
   return (

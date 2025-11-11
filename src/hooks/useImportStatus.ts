@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 
-export type ImportStatus = {
+export interface ImportStatus {
   lastImportAt?: string;
   isLoading: boolean;
   error: Error | null;
-};
+}
 
 /**
  * Fetches the last import status/timestamp from the backend

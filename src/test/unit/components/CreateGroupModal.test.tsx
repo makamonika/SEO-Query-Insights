@@ -1,34 +1,80 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { CreateGroupModal } from "@/components/groups/CreateGroupModal";
 import type { QueryDto } from "@/types";
 
 // Mock UI components
+
+interface DialogProps {
+  children: ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+interface DialogContentProps {
+  children: ReactNode;
+}
+
+interface DialogHeaderProps {
+  children: ReactNode;
+}
+
+interface DialogTitleProps {
+  children: ReactNode;
+}
+
+interface DialogDescriptionProps {
+  children: ReactNode;
+}
+
+interface DialogFooterProps {
+  children: ReactNode;
+}
+
+interface InputProps {
+  value?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
+  [key: string]: unknown;
+}
+
+interface ButtonProps {
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  type?: "button" | "submit" | "reset";
+  variant?: "default" | "outline" | "destructive" | "secondary" | "ghost" | "link";
+}
+
+interface LabelProps {
+  children: ReactNode;
+  htmlFor?: string;
+}
+
+interface BadgeProps {
+  children: ReactNode;
+  variant?: "default" | "secondary" | "destructive" | "outline";
+}
+
 vi.mock("@/components/ui/dialog", () => ({
-  Dialog: ({ children, open }: any) => (open ? <div data-testid="dialog">{children}</div> : null),
-  DialogContent: ({ children }: any) => <div data-testid="dialog-content">{children}</div>,
-  DialogHeader: ({ children }: any) => <div data-testid="dialog-header">{children}</div>,
-  DialogTitle: ({ children }: any) => <h2 data-testid="dialog-title">{children}</h2>,
-  DialogDescription: ({ children }: any) => <p data-testid="dialog-description">{children}</p>,
-  DialogFooter: ({ children }: any) => <div data-testid="dialog-footer">{children}</div>,
+  Dialog: ({ children, open }: DialogProps) => (open ? <div data-testid="dialog">{children}</div> : null),
+  DialogContent: ({ children }: DialogContentProps) => <div data-testid="dialog-content">{children}</div>,
+  DialogHeader: ({ children }: DialogHeaderProps) => <div data-testid="dialog-header">{children}</div>,
+  DialogTitle: ({ children }: DialogTitleProps) => <h2 data-testid="dialog-title">{children}</h2>,
+  DialogDescription: ({ children }: DialogDescriptionProps) => <p data-testid="dialog-description">{children}</p>,
+  DialogFooter: ({ children }: DialogFooterProps) => <div data-testid="dialog-footer">{children}</div>,
 }));
 
 vi.mock("@/components/ui/input", () => ({
-  Input: ({ value, onChange, disabled, autoFocus, ...props }: any) => (
-    <input
-      value={value}
-      onChange={onChange}
-      disabled={disabled}
-      autoFocus={autoFocus}
-      data-testid="group-name-input"
-      {...props}
-    />
+  Input: ({ value, onChange, disabled, ...props }: InputProps) => (
+    <input value={value} onChange={onChange} disabled={disabled} data-testid="group-name-input" {...props} />
   ),
 }));
 
 vi.mock("@/components/ui/button", () => ({
-  Button: ({ children, onClick, disabled, type, variant }: any) => (
+  Button: ({ children, onClick, disabled, type, variant }: ButtonProps) => (
     <button
       onClick={onClick}
       disabled={disabled}
@@ -43,7 +89,7 @@ vi.mock("@/components/ui/button", () => ({
 }));
 
 vi.mock("@/components/ui/label", () => ({
-  Label: ({ children, htmlFor }: any) => (
+  Label: ({ children, htmlFor }: LabelProps) => (
     <label htmlFor={htmlFor} data-testid="label">
       {children}
     </label>
@@ -51,7 +97,7 @@ vi.mock("@/components/ui/label", () => ({
 }));
 
 vi.mock("@/components/ui/badge", () => ({
-  Badge: ({ children, variant }: any) => (
+  Badge: ({ children, variant }: BadgeProps) => (
     <span data-testid="badge" data-variant={variant}>
       {children}
     </span>
@@ -571,28 +617,6 @@ describe("CreateGroupModal", () => {
       // Assert
       const input = screen.getByTestId("group-name-input");
       expect(input).toHaveAttribute("aria-label", "Group name");
-    });
-
-    it("should have autofocus on input", () => {
-      // Arrange
-      const queries = [createMockQuery()];
-
-      // Act
-      render(
-        <CreateGroupModal
-          open={true}
-          onOpenChange={mockOnOpenChange}
-          onCreate={mockOnCreate}
-          isSubmitting={false}
-          queries={queries}
-        />
-      );
-
-      // Assert
-      const input = screen.getByTestId("group-name-input");
-      // In jsdom, autoFocus doesn't render as an attribute but the element should have focus
-      // Check that the input element is the active element (has focus)
-      expect(input).toHaveFocus();
     });
 
     it("should display query count in label", () => {

@@ -1,10 +1,10 @@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-type OpportunityToggleProps = {
+interface OpportunityToggleProps {
   checked: boolean;
   onChange: (checked: boolean) => void;
-};
+}
 
 export function OpportunityToggle({ checked, onChange }: OpportunityToggleProps) {
   return (

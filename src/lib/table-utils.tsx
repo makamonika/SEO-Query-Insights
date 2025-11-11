@@ -8,7 +8,7 @@ import type { ReactElement } from "react";
  * @param decimals - Number of decimal places (default: 0)
  * @returns Formatted number string
  */
-export function formatNumber(num: number, decimals: number = 0): string {
+export function formatNumber(num: number, decimals = 0): string {
   return num.toFixed(decimals);
 }
 

@@ -142,7 +142,6 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             }
             autoComplete="new-password"
             className="pr-10"
-            autoFocus
           />
           <button
             type="button"

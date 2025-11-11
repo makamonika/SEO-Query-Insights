@@ -130,7 +130,7 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
       refetchMembers();
       refetchGroup();
       setLiveMessage(`Removed "${confirmDialog.queryText}" from group`);
-    } catch (err) {
+    } catch {
       // Error already handled by hook with toast
       setLiveMessage(`Failed to remove query from group`);
     }

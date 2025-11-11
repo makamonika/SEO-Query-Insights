@@ -14,7 +14,15 @@ vi.mock("@tanstack/react-virtual", () => ({
 }));
 
 vi.mock("@/components/ui/checkbox", () => ({
-  Checkbox: ({ checked, onCheckedChange, "aria-label": ariaLabel }: any) => (
+  Checkbox: ({
+    checked,
+    onCheckedChange,
+    "aria-label": ariaLabel,
+  }: {
+    checked?: boolean;
+    onCheckedChange?: (checked: boolean) => void;
+    "aria-label"?: string;
+  }) => (
     <input type="checkbox" checked={checked} onChange={onCheckedChange} aria-label={ariaLabel} data-testid="checkbox" />
   ),
 }));
@@ -321,7 +329,8 @@ describe("QueriesTable", () => {
       const impressionsHeader = screen
         .getAllByRole("columnheader")
         .find((el) => el.textContent?.includes("Impressions"));
-      await user.click(impressionsHeader!);
+      expect(impressionsHeader).toBeDefined();
+      if (impressionsHeader) await user.click(impressionsHeader);
 
       expect(mockOnSortChange).toHaveBeenCalledWith({
         sortBy: "impressions",
@@ -344,7 +353,8 @@ describe("QueriesTable", () => {
       );
 
       const clicksHeader = screen.getAllByRole("columnheader").find((el) => el.textContent?.includes("Clicks"));
-      await user.click(clicksHeader!);
+      expect(clicksHeader).toBeDefined();
+      if (clicksHeader) await user.click(clicksHeader);
 
       expect(mockOnSortChange).toHaveBeenCalledWith({
         sortBy: "clicks",
@@ -367,7 +377,8 @@ describe("QueriesTable", () => {
       );
 
       const ctrHeader = screen.getAllByRole("columnheader").find((el) => el.textContent?.includes("CTR"));
-      await user.click(ctrHeader!);
+      expect(ctrHeader).toBeDefined();
+      if (ctrHeader) await user.click(ctrHeader);
 
       expect(mockOnSortChange).toHaveBeenCalledWith({
         sortBy: "ctr",
@@ -390,7 +401,8 @@ describe("QueriesTable", () => {
       );
 
       const positionHeader = screen.getAllByRole("columnheader").find((el) => el.textContent?.includes("Avg Position"));
-      await user.click(positionHeader!);
+      expect(positionHeader).toBeDefined();
+      if (positionHeader) await user.click(positionHeader);
 
       expect(mockOnSortChange).toHaveBeenCalledWith({
         sortBy: "avgPosition",
@@ -415,7 +427,8 @@ describe("QueriesTable", () => {
       const impressionsHeader = screen
         .getAllByRole("columnheader")
         .find((el) => el.textContent?.includes("Impressions"));
-      await user.click(impressionsHeader!);
+      expect(impressionsHeader).toBeDefined();
+      if (impressionsHeader) await user.click(impressionsHeader);
 
       expect(mockOnSortChange).toHaveBeenCalledWith({
         sortBy: "impressions",
