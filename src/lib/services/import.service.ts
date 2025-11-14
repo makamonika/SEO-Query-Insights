@@ -83,15 +83,12 @@ export function transformGscRecord(record: GscDataRecord): TablesInsert<"queries
   // Calculate CTR from clicks and impressions (decimal 0-1)
   const ctr = calculateCtrDecimal(record.clicks, record.impressions);
 
-  // Round CTR to 2 decimal places (good enough for display)
-  const roundedCtr = Math.round(ctr * 100) / 100;
-
   // Round avg_position to 2 decimal places to fit numeric(7,2)
   const roundedPosition = Math.round(record.avg_position * 100) / 100;
 
-  // Validate that rounded values fit in database constraints
-  if (roundedCtr > 1) {
-    throw new Error(`CTR value ${roundedCtr} exceeds maximum of 1.0`);
+  // Validate that values fit in database constraints
+  if (ctr > 1) {
+    throw new Error(`CTR value ${ctr} exceeds maximum of 1.0`);
   }
   if (roundedPosition > 99999.99) {
     throw new Error(`Position value ${roundedPosition} exceeds maximum of 99999.99`);
@@ -104,7 +101,7 @@ export function transformGscRecord(record: GscDataRecord): TablesInsert<"queries
     url: record.url,
     impressions: record.impressions,
     clicks: record.clicks,
-    ctr: roundedCtr,
+    ctr: ctr,
     avg_position: roundedPosition,
     is_opportunity: computeIsOpportunity(record.impressions, ctr, roundedPosition),
   };
