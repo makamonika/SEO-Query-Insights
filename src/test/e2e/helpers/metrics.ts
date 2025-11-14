@@ -23,7 +23,7 @@ export function computeGroupMetrics(queries: QueryLike[]): MetricsResult {
     queries.length > 0
       ? Number((queries.reduce((acc, query) => acc + Number(query.avg_position ?? 0), 0) / queries.length).toFixed(1))
       : 0;
-  const ctr = impressions > 0 ? Number((clicks / impressions).toFixed(2)) : 0;
+  const ctr = impressions > 0 ? Number((clicks / impressions).toFixed(4)) : 0;
 
   return {
     queryCount: queries.length,

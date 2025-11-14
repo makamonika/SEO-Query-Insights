@@ -36,7 +36,7 @@ export function calculateGroupMetricsFromQueries(queries: QueryDto[]): {
     metrics: {
       impressions: totalImpressions,
       clicks: totalClicks,
-      ctr: Number(ctr.toFixed(2)),
+      ctr: Number(ctr.toFixed(4)),
       avgPosition: Number(avgPosition.toFixed(1)),
     },
     queryCount: queries.length,

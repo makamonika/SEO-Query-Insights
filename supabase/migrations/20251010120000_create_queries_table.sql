@@ -17,7 +17,7 @@ create table queries (
   url text not null,
   impressions bigint not null check (impressions >= 0),
   clicks bigint not null check (clicks >= 0 and clicks <= impressions),
-  ctr numeric(5,2) not null check (ctr between 0 and 1),
+  ctr numeric(6,4) not null check (ctr between 0 and 1),
   avg_position numeric(7,2) not null check (avg_position >= 0),
   is_opportunity boolean not null default false,
   created_at timestamptz not null default now()
