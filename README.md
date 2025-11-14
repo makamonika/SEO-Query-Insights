@@ -150,7 +150,18 @@ OPENROUTER_API_KEY=your_openrouter_api_key
 
 # Internal API Configuration
 IMPORT_SOURCE_BASE_URL=import_source_base_url
+
+# To use mock data for imports (optional)
+USE_MOCK_IMPORT_DATA=true
 ```
+
+#### Using Mock Data (Temporary Development Solution)
+
+If the real data server is unavailable, you can use mock data for development:
+
+1. Set `USE_MOCK_IMPORT_DATA=true` in your `.env` file
+2. You can skip setting `IMPORT_SOURCE_BASE_URL` when using mock data
+3. The system will automatically load data from `src/lib/fixtures/gsc_10xdev.json`
 
 ### 5. Supabase Setup
 
