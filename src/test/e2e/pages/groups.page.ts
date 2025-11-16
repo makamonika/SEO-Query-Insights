@@ -12,7 +12,7 @@ export class GroupsPage {
   constructor(page: Page) {
     this.page = page;
     this.searchInput = page.getByRole("searchbox", { name: "Search queries" });
-    this.table = page.locator("#groups-table");
+    this.table = page.locator("#groups-list");
   }
 
   async goto(): Promise<void> {

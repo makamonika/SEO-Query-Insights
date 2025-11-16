@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { LiveRegion } from "@/components/queries/LiveRegion";
 import { GroupsToolbar } from "./GroupsToolbar";
-import { GroupsTable } from "./GroupsTable";
+import { GroupsList } from "./GroupsList";
 import { Pagination } from "@/components/ui/pagination";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useGroups, type GroupSortField } from "@/hooks/useGroups";
@@ -97,7 +97,7 @@ export function GroupsPage() {
     <div className="min-h-screen bg-background">
       {/* Skip to content link for accessibility */}
       <a
-        href="#groups-table"
+        href="#groups-list"
         className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:rounded focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       >
         Skip to content
@@ -114,7 +114,7 @@ export function GroupsPage() {
             isGeneratingAI={isGeneratingAI}
           />
 
-          <GroupsTable
+          <GroupsList
             rows={groups}
             isLoading={isLoading}
             sortBy={sortBy}

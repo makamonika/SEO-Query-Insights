@@ -7,7 +7,7 @@ import { cleanupAllTestData, ensureQaUser } from "../utils/supabase-admin";
  * - Groups and group items
  * - User actions
  * - Test queries (prefixed with qa-group-e2e-)
- * 
+ *
  * This runs even if tests fail, ensuring the database is cleaned up.
  */
 export default async function globalTeardown(_config: FullConfig): Promise<void> {
