@@ -102,9 +102,9 @@ export function Pagination({
   }
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t bg-background">
+    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between px-4 py-3 border-t bg-background">
       {/* Left side: Items info and page size selector */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4">
         <div className="text-sm text-muted-foreground">
           Showing <span className="font-medium">{startItem}</span> to <span className="font-medium">{endItem}</span> of{" "}
           <span className="font-medium">{total}</span> results
@@ -133,7 +133,7 @@ export function Pagination({
       </div>
 
       {/* Right side: Page navigation */}
-      <nav className="flex items-center gap-1" aria-label="Pagination">
+      <nav className="flex items-center justify-center md:justify-start gap-1" aria-label="Pagination">
         {/* First page button */}
         <Button
           variant="ghost"
