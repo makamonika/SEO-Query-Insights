@@ -64,5 +64,12 @@ on queries for insert
 to authenticated 
 with check (true);
 
--- note: no update or delete policies for regular users to ensure data immutability
+-- rls policy: service role can delete queries (for test cleanup and admin operations)
+-- rationale: e2e tests need to clean up test data, and admin operations may require deletions
+create policy "queries_delete_service_role" 
+on queries for delete 
+to service_role
+using (true);
+
+-- note: no update or delete policies for regular authenticated users to ensure data immutability
 

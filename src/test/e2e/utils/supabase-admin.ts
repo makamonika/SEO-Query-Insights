@@ -23,6 +23,7 @@ interface GroupMetricsSummary {
 
 const RUN_ID = process.env.PLAYWRIGHT_RUN_ID ?? `${Date.now()}`;
 const QA_QUERY_PREFIX = `qa-group-e2e-${RUN_ID}`;
+const QA_QUERY_PREFIX_WILDCARD = "qa-group-e2e-%";
 const BASELINE_QUERY_DATE = "2025-01-01";
 
 let cachedClient: SupabaseAdminClient | null = null;
@@ -108,11 +109,13 @@ export async function ensureQaUser(): Promise<QaUserCredentials> {
 /**
  * Deletes all test queries matching the QA prefix pattern.
  * Used internally by resetBaselineQueries and cleanupAllTestData.
+ * @param useWildcard - If true, deletes all test queries from any run. If false, only deletes current run's queries.
  */
-async function deleteTestQueries(): Promise<void> {
+async function deleteTestQueries(useWildcard = false): Promise<void> {
   const adminClient = getSupabaseAdminClient();
+  const pattern = useWildcard ? QA_QUERY_PREFIX_WILDCARD : `${QA_QUERY_PREFIX}%`;
 
-  const { error } = await adminClient.from("queries").delete().ilike("query_text", `${QA_QUERY_PREFIX}%`);
+  const { error } = await adminClient.from("queries").delete().ilike("query_text", pattern);
 
   if (error) {
     throw new Error(`Failed to delete test queries: ${error.message}`);
@@ -183,16 +186,16 @@ export async function cleanupAllTestData(userId: string): Promise<void> {
     console.log(`✅ Deleted user actions for user ${userId}`);
   }
 
-  // Clean up test queries by prefix pattern
-  const { error: queriesError, count: queriesCount } = await adminClient
+  // Clean up ALL test queries
+  const { error: queriesError } = await adminClient
     .from("queries")
-    .delete()
-    .ilike("query_text", `${QA_QUERY_PREFIX}%`);
+    .delete({ count: "exact" })
+    .ilike("query_text", QA_QUERY_PREFIX_WILDCARD);
 
   if (queriesError) {
     console.error(`❌ Failed to delete test queries: ${queriesError.message}`);
   } else {
-    console.log(`✅ Successfully deleted test queries (affected rows: ${queriesCount})`);
+    console.log("✅ Successfully deleted test queries");
   }
 }
 

@@ -1,5 +1,5 @@
 import { request, type FullConfig } from "@playwright/test";
-import { ensureArtifactsDirectory, ensureQaUser, qaAuthStatePath } from "../utils/supabase-admin";
+import { cleanupAllTestData, ensureArtifactsDirectory, ensureQaUser, qaAuthStatePath } from "../utils/supabase-admin";
 
 export default async function globalSetup(config: FullConfig): Promise<void> {
   const baseURL = (config.projects[0]?.use?.baseURL as string | undefined) ?? "http://localhost:3000";
@@ -7,6 +7,16 @@ export default async function globalSetup(config: FullConfig): Promise<void> {
   await ensureArtifactsDirectory();
 
   const qaUser = await ensureQaUser();
+
+  // Clean up any leftover data from previous failed test runs
+  console.log("🧹 Cleaning up any leftover test data from previous runs...");
+  try {
+    await cleanupAllTestData(qaUser.id);
+    console.log("✅ Pre-test cleanup completed\n");
+  } catch (error) {
+    console.error("⚠️  Pre-test cleanup failed:", error);
+    // Continue anyway - tests might still work
+  }
 
   const requestContext = await request.newContext({
     baseURL,

@@ -7,6 +7,8 @@ import { cleanupAllTestData, ensureQaUser } from "../utils/supabase-admin";
  * - Groups and group items
  * - User actions
  * - Test queries (prefixed with qa-group-e2e-)
+ * 
+ * This runs even if tests fail, ensuring the database is cleaned up.
  */
 export default async function globalTeardown(_config: FullConfig): Promise<void> {
   console.log("\n🧹 Running global teardown...");
@@ -17,6 +19,8 @@ export default async function globalTeardown(_config: FullConfig): Promise<void>
     console.log("✅ Global teardown completed successfully\n");
   } catch (error) {
     console.error("❌ Global teardown failed:", error);
-    throw error;
+    console.error("⚠️  You may need to manually clean up test data from the database");
+    // Don't throw - we don't want teardown failures to mask test failures
+    // The error is logged for visibility
   }
 }

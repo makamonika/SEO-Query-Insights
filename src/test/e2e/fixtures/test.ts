@@ -14,9 +14,21 @@ export const test = base.extend<Fixtures>({
   },
 });
 
-test.beforeEach(async ({ qaUser }) => {
-  await cleanupGroupsForUser(qaUser.id);
+// Set up baseline queries before each test
+// This ensures each test has the expected test data
+test.beforeEach(async () => {
   await resetBaselineQueries();
+});
+
+// Clean up after each test, even if the test fails
+// This ensures the next test starts with a clean state
+test.afterEach(async ({ qaUser }) => {
+  try {
+    await cleanupGroupsForUser(qaUser.id);
+  } catch (error) {
+    console.error("⚠️  Failed to cleanup after test:", error);
+    // Don't throw - we want other cleanup to continue
+  }
 });
 
 export { expect };
