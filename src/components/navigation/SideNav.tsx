@@ -140,7 +140,7 @@ export function SideNav() {
       >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-          {!isCollapsed && <h1 className="text-lg font-semibold text-sidebar-foreground">SEO Insights</h1>}
+          {!isCollapsed && <h1 className="text-lg font-semibold text-sidebar-foreground">SEO Query Insights</h1>}
           <button
             onClick={toggleCollapse}
             className={cn(

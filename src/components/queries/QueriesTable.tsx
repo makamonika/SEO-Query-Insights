@@ -223,7 +223,10 @@ export const QueriesTable = memo(function QueriesTable({
                     onKeyDown={(e) => handleCellKeyDown(e, "query", row.queryText)}
                   >
                     <span className="truncate flex-1 min-w-0">{row.queryText}</span>
-                    <Maximize2 className="size-3.5 text-muted-foreground shrink-0 md:hidden opacity-60 group-active:opacity-100 transition-opacity" aria-hidden="true" />
+                    <Maximize2
+                      className="size-3.5 text-muted-foreground shrink-0 md:hidden opacity-60 group-active:opacity-100 transition-opacity"
+                      aria-hidden="true"
+                    />
                   </div>
                   <div
                     className="text-muted-foreground cursor-pointer active:bg-muted/30 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 md:cursor-default md:active:bg-transparent md:focus:ring-0 transition-colors flex items-center gap-1.5 group min-w-0"
@@ -234,7 +237,10 @@ export const QueriesTable = memo(function QueriesTable({
                     onKeyDown={(e) => handleCellKeyDown(e, "url", row.url)}
                   >
                     <span className="truncate flex-1 min-w-0">{row.url}</span>
-                    <Maximize2 className="size-3.5 text-muted-foreground shrink-0 md:hidden opacity-60 group-active:opacity-100 transition-opacity" aria-hidden="true" />
+                    <Maximize2
+                      className="size-3.5 text-muted-foreground shrink-0 md:hidden opacity-60 group-active:opacity-100 transition-opacity"
+                      aria-hidden="true"
+                    />
                   </div>
                   <div className="text-right tabular-nums" role="gridcell">
                     {formatNumber(row.impressions)}
