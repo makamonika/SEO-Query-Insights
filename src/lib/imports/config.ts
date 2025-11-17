@@ -5,10 +5,7 @@
  * date formatting, validation, and configuration constants.
  */
 
-import {
-  IMPORT_FETCH_TIMEOUT_MS,
-  IMPORT_MAX_BYTES,
-} from "astro:env/server";
+import { IMPORT_FETCH_TIMEOUT_MS, IMPORT_MAX_BYTES } from "astro:env/server";
 
 // Use process.env directly for optional runtime environment variables
 const IMPORT_SOURCE_BASE_URL = process.env.IMPORT_SOURCE_BASE_URL;
@@ -38,9 +35,7 @@ export function formatUtcYYYYMMDD(date: Date): string {
 export function getImportSourceBaseUrl(): string {
   // TEMPORARY: If using mock data, return a dummy URL
   const useMockData = USE_MOCK_IMPORT_DATA?.toLowerCase() === "true";
-  
   console.log(`[getImportSourceBaseUrl] USE_MOCK_IMPORT_DATA=${USE_MOCK_IMPORT_DATA}, useMockData=${useMockData}`);
-  
   if (useMockData) {
     return "https://mock-data.local"; // Dummy URL, won't be used
   }
