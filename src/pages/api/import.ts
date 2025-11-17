@@ -54,6 +54,7 @@ export const POST: APIRoute = async ({ locals }) => {
     try {
       sourceUrl = buildDailyImportUrl();
     } catch (error) {
+      console.error("[imports] Failed to build import URL:", error);
       const errorResponse: ErrorResponse = {
         error: {
           code: "validation_error",
