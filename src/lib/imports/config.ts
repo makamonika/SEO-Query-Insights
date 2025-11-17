@@ -5,10 +5,7 @@
  * date formatting, validation, and configuration constants.
  */
 
-import { 
-  IMPORT_FETCH_TIMEOUT_MS, 
-  IMPORT_MAX_BYTES
-} from "astro:env/server";
+import { IMPORT_FETCH_TIMEOUT_MS, IMPORT_MAX_BYTES } from "astro:env/server";
 
 /**
  * Runtime environment interface for Cloudflare
