@@ -63,14 +63,16 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    // Set authentication cookies
-    setAuthCookies(cookies, result.session);
-
     // Check if email confirmation is required
     // When email confirmation is enabled in Supabase (auth.email.enable_confirmations = true),
-    // the user will receive a confirmation email and won't be able to sign in until confirmed.
-    // The session is still created, but the user's email_confirmed_at will be null.
-    const requiresEmailConfirmation = !result.session.user.email_confirmed_at;
+    // the user will receive a confirmation email and session will be null until confirmed.
+    // When disabled, session is created immediately and user is logged in.
+    const requiresEmailConfirmation = !result.session;
+
+    // Set authentication cookies only if session exists (email confirmation disabled)
+    if (result.session) {
+      setAuthCookies(cookies, result.session);
+    }
 
     // Return user data
     const response: RegisterResponseDto = {

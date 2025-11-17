@@ -14,7 +14,7 @@ import type { UserDto } from "@/types";
  */
 function mapUserToDto(user: User): UserDto {
   if (!user.email) {
-    throw new Error("User email is required");
+    throw new Error("User email is missing from authentication response");
   }
   return {
     id: user.id,
@@ -30,7 +30,7 @@ export async function registerUser(
   supabase: SupabaseClient<Database>,
   email: string,
   password: string
-): Promise<{ user: UserDto; session: Session } | { error: string }> {
+): Promise<{ user: UserDto; session: Session | null } | { error: string }> {
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -40,7 +40,7 @@ export async function registerUser(
     return { error: error.message };
   }
 
-  if (!data.user || !data.session) {
+  if (!data.user) {
     return { error: "Failed to create user account" };
   }
 
