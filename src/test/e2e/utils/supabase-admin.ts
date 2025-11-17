@@ -75,8 +75,8 @@ function getSupabaseAdminClient(): SupabaseAdminClient {
     return cachedClient;
   }
 
-  const supabaseUrl = getRequiredEnv("SUPABASE_URL");
-  const supabaseKey = getRequiredEnv("SUPABASE_KEY");
+  const supabaseUrl = globalThis.SUPABASE_URL;
+  const supabaseKey = globalThis.SUPABASE_KEY;
 
   cachedClient = createClient<Database>(supabaseUrl, supabaseKey, {
     auth: {
