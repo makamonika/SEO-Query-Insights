@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from "astro/config";
+import { defineConfig, envField } from "astro/config";
 
 import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
@@ -15,4 +15,13 @@ export default defineConfig({
     plugins: [tailwindcss()],
   },
   adapter: cloudflare(),
+  env: {
+    schema: {
+      SUPABASE_URL: envField.string({ context: "server", access: "public" }),
+      SUPABASE_KEY: envField.string({ context: "server", access: "public" }),
+      OPENROUTER_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      IMPORT_SOURCE_BASE_URL: envField.string({ context: "server", access: "public", optional: true }),
+      USE_MOCK_IMPORT_DATA: envField.string({ context: "server", access: "public", optional: true }),
+    },
+  },
 });
