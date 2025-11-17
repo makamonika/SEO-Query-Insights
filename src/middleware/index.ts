@@ -30,6 +30,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   context.locals.supabase = supabase;
 
+  // Skip authentication check for public routes
+  if (isPublicRoute) {
+    context.locals.user = undefined;
+    return next();
+  }
+
+  // Only check authentication for protected routes
   const {
     data: { user },
     error,
@@ -49,7 +56,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
     context.locals.user = undefined;
   }
 
-  if (!user && !isPublicRoute) {
+  if (!user) {
     if (isApiRoute) {
       return new Response(
         JSON.stringify({
