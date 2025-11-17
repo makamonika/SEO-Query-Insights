@@ -7,6 +7,7 @@ import { mapQueryRowToDto, mapGroupRowBase } from "../mappers";
 import { OpenRouterService, OpenRouterError } from "./openrouter.service";
 import type { JsonSchemaConfig } from "./openrouter.types";
 import { recomputeAndPersistGroupMetrics } from "./group-metrics.service";
+import { OPENROUTER_API_KEY } from "astro:env/server";
 
 /**
  * AI Clusters Service
@@ -61,13 +62,12 @@ const CLUSTER_RESPONSE_SCHEMA: JsonSchemaConfig = {
  * Initialize OpenRouter service with API key from environment
  */
 function getOpenRouterService(): OpenRouterService {
-  const apiKey = import.meta.env.OPENROUTER_API_KEY;
-  if (!apiKey) {
+  if (!OPENROUTER_API_KEY) {
     throw new Error("OPENROUTER_API_KEY environment variable is not set");
   }
 
   return OpenRouterService.getInstance({
-    apiKey,
+    apiKey: OPENROUTER_API_KEY,
     model: "openai/gpt-4o-mini",
   });
 }

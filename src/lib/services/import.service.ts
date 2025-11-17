@@ -11,6 +11,7 @@ import type { Database } from "../../db/database.types";
 import type { TablesInsert } from "../../db/database.types";
 import { ImportConfig } from "../imports/config";
 import { calculateCtrDecimal, computeIsOpportunity } from "../metrics";
+import { USE_MOCK_IMPORT_DATA } from "astro:env/server";
 
 /**
  * Raw GSC data record from import source
@@ -126,7 +127,7 @@ export async function fetchImportData(
   signal: AbortSignal
 ): Promise<GscDataRecord[]> {
   // TEMPORARY: Check if we should use mock data
-  const useMockData = import.meta.env.USE_MOCK_IMPORT_DATA === "true";
+  const useMockData = USE_MOCK_IMPORT_DATA === "true";
 
   if (useMockData) {
     console.log("[fetchImportData] Using mock data from fixtures (USE_MOCK_IMPORT_DATA=true)");

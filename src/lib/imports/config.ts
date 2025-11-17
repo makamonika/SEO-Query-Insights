@@ -5,6 +5,13 @@
  * date formatting, validation, and configuration constants.
  */
 
+import {
+  IMPORT_SOURCE_BASE_URL,
+  USE_MOCK_IMPORT_DATA,
+  IMPORT_FETCH_TIMEOUT_MS,
+  IMPORT_MAX_BYTES,
+} from "astro:env/server";
+
 /**
  * Formats a date into YYYYMMDD format in UTC timezone
  * @param date - Date to format
@@ -28,12 +35,12 @@ export function formatUtcYYYYMMDD(date: Date): string {
  */
 export function getImportSourceBaseUrl(): string {
   // TEMPORARY: If using mock data, return a dummy URL
-  const useMockData = import.meta.env.USE_MOCK_IMPORT_DATA === "true";
+  const useMockData = USE_MOCK_IMPORT_DATA === "true";
   if (useMockData) {
     return "https://mock-data.local"; // Dummy URL, won't be used
   }
 
-  const baseUrl = import.meta.env.IMPORT_SOURCE_BASE_URL;
+  const baseUrl = IMPORT_SOURCE_BASE_URL;
 
   if (!baseUrl) {
     throw new Error("IMPORT_SOURCE_BASE_URL is not configured");
@@ -87,12 +94,12 @@ export const ImportConfig = {
   /**
    * Maximum time allowed for fetch operation (milliseconds)
    */
-  FETCH_TIMEOUT_MS: Number(import.meta.env.IMPORT_FETCH_TIMEOUT_MS) || 30000,
+  FETCH_TIMEOUT_MS: IMPORT_FETCH_TIMEOUT_MS as number,
 
   /**
    * Maximum size of import file in bytes (70 MB default)
    */
-  MAX_BYTES: Number(import.meta.env.IMPORT_MAX_BYTES) || 70_000_000,
+  MAX_BYTES: IMPORT_MAX_BYTES as number,
 
   /**
    * Number of rows to insert per batch operation
