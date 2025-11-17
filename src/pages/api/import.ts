@@ -52,7 +52,9 @@ export const POST: APIRoute = async ({ locals }) => {
     // Step 3: Build source URL from settings
     let sourceUrl: string;
     try {
-      sourceUrl = buildDailyImportUrl();
+      // Access Cloudflare runtime environment variables
+      const env = locals.runtime?.env || {};
+      sourceUrl = buildDailyImportUrl(env);
     } catch (error) {
       console.error("[imports] Failed to build import URL:", error);
       const errorResponse: ErrorResponse = {

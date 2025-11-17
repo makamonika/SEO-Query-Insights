@@ -5,11 +5,19 @@
  * date formatting, validation, and configuration constants.
  */
 
-import { IMPORT_FETCH_TIMEOUT_MS, IMPORT_MAX_BYTES } from "astro:env/server";
+import { 
+  IMPORT_FETCH_TIMEOUT_MS, 
+  IMPORT_MAX_BYTES
+} from "astro:env/server";
 
-// Use process.env directly for optional runtime environment variables
-const IMPORT_SOURCE_BASE_URL = process.env.IMPORT_SOURCE_BASE_URL;
-const USE_MOCK_IMPORT_DATA = process.env.USE_MOCK_IMPORT_DATA;
+/**
+ * Runtime environment interface for Cloudflare
+ */
+export interface CloudflareEnv {
+  IMPORT_SOURCE_BASE_URL?: string;
+  USE_MOCK_IMPORT_DATA?: string;
+  [key: string]: unknown;
+}
 
 /**
  * Formats a date into YYYYMMDD format in UTC timezone
@@ -29,18 +37,19 @@ export function formatUtcYYYYMMDD(date: Date): string {
  * TEMPORARY: When USE_MOCK_IMPORT_DATA is set to "true", this function will return
  * a dummy URL since the actual URL won't be used.
  *
+ * @param env - Cloudflare runtime environment (from context.locals.runtime.env)
  * @returns Base URL (HTTPS) for import data sources
  * @throws Error if IMPORT_SOURCE_BASE_URL is not configured (unless using mock data)
  */
-export function getImportSourceBaseUrl(): string {
+export function getImportSourceBaseUrl(env: CloudflareEnv): string {
   // TEMPORARY: If using mock data, return a dummy URL
-  const useMockData = USE_MOCK_IMPORT_DATA?.toLowerCase() === "true";
-  console.log(`[getImportSourceBaseUrl] USE_MOCK_IMPORT_DATA=${USE_MOCK_IMPORT_DATA}, useMockData=${useMockData}`);
+  const useMockData = env.USE_MOCK_IMPORT_DATA?.toLowerCase() === "true";
+  console.log(`[getImportSourceBaseUrl] USE_MOCK_IMPORT_DATA=${env.USE_MOCK_IMPORT_DATA}, useMockData=${useMockData}`);
   if (useMockData) {
     return "https://mock-data.local"; // Dummy URL, won't be used
   }
 
-  const baseUrl = IMPORT_SOURCE_BASE_URL;
+  const baseUrl = env.IMPORT_SOURCE_BASE_URL;
 
   if (!baseUrl) {
     throw new Error("IMPORT_SOURCE_BASE_URL is not configured");
@@ -71,10 +80,11 @@ export function getImportSourceBaseUrl(): string {
  * TEMPORARY: When USE_MOCK_IMPORT_DATA is set to "true", this function will return
  * a dummy URL since the actual URL won't be used by fetchImportData.
  *
+ * @param env - Cloudflare runtime environment (from context.locals.runtime.env)
  * @returns Full HTTPS URL to the data file from 3 days ago (or dummy URL if using mock data)
  */
-export function buildDailyImportUrl(): string {
-  const baseUrl = getImportSourceBaseUrl();
+export function buildDailyImportUrl(env: CloudflareEnv): string {
+  const baseUrl = getImportSourceBaseUrl(env);
 
   // GSC data has a 3-day delay, so fetch data from 3 days ago
   const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);

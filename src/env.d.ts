@@ -12,6 +12,15 @@ declare global {
         email: string;
         createdAt: string;
       };
+      runtime?: {
+        env?: {
+          IMPORT_SOURCE_BASE_URL?: string;
+          USE_MOCK_IMPORT_DATA?: string;
+          [key: string]: unknown;
+        };
+        cf?: unknown;
+        ctx?: unknown;
+      };
     }
   }
 }
