@@ -36,10 +36,7 @@ function parseCookieHeader(cookieHeader: string): { name: string; value: string 
  * Create Supabase server client with SSR support
  * This client properly handles authentication cookies for server-side rendering
  */
-export const createSupabaseServerInstance = (context: {
-  headers: Headers;
-  cookies: AstroCookies;
-}) => {
+export const createSupabaseServerInstance = (context: { headers: Headers; cookies: AstroCookies }) => {
   // Use import.meta.env.PROD to determine if we're in production
   // This is a default Astro environment variable
   const cookieOptions = getCookieOptions(import.meta.env.PROD);
