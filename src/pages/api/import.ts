@@ -51,9 +51,11 @@ export const POST: APIRoute = async ({ locals }) => {
 
     // Step 3: Build source URL from settings
     let sourceUrl: string;
+    let useMockData: boolean;
     try {
       // Access Cloudflare runtime environment variables
       const env = locals.runtime?.env || {};
+      useMockData = env.USE_MOCK_IMPORT_DATA?.toLowerCase() === "true";
       sourceUrl = buildDailyImportUrl(env);
     } catch (error) {
       console.error("[imports] Failed to build import URL:", error);
@@ -88,7 +90,8 @@ export const POST: APIRoute = async ({ locals }) => {
       userId,
       importId,
       sourceUrl,
-      ImportConfig.FETCH_TIMEOUT_MS
+      ImportConfig.FETCH_TIMEOUT_MS,
+      useMockData
     );
 
     if (result.success) {
@@ -156,7 +159,8 @@ async function runImportWithTimeout(
   userId: string,
   importId: string,
   sourceUrl: string,
-  timeoutMs: number
+  timeoutMs: number,
+  useMockData: boolean
 ): Promise<ImportResult> {
   // Create abort controller for timeout
   const abortController = new AbortController();
@@ -164,7 +168,7 @@ async function runImportWithTimeout(
 
   try {
     // Run the import service
-    const result = await runImport(supabase, sourceUrl, abortController.signal);
+    const result = await runImport(supabase, sourceUrl, abortController.signal, useMockData);
 
     clearTimeout(timeoutId);
 

@@ -12,8 +12,6 @@ import type { TablesInsert } from "../../db/database.types";
 import { ImportConfig } from "../imports/config";
 import { calculateCtrDecimal, computeIsOpportunity } from "../metrics";
 
-const USE_MOCK_IMPORT_DATA = process.env.USE_MOCK_IMPORT_DATA;
-
 /**
  * Raw GSC data record from import source
  * Represents metrics for a specific URL + query combination
@@ -112,24 +110,23 @@ export function transformGscRecord(record: GscDataRecord): TablesInsert<"queries
 /**
  * Fetches data from the source URL with timeout and size limits
  *
- * TEMPORARY: When USE_MOCK_IMPORT_DATA environment variable is set to "true",
+ * TEMPORARY: When useMockData is true,
  * this function will return mock data from fixtures instead of fetching from the real server.
  * This is a temporary solution while the real data server is inaccessible.
  *
  * @param sourceUrl - URL to fetch data from (ignored when using mock data)
  * @param maxBytes - Maximum size of response body
  * @param signal - AbortSignal for cancellation
+ * @param useMockData - Whether to use mock data instead of fetching from sourceUrl
  * @returns Parsed array of GSC records
  * @throws Error if fetch fails, times out, or data is invalid
  */
 export async function fetchImportData(
   sourceUrl: string,
   maxBytes: number,
-  signal: AbortSignal
+  signal: AbortSignal,
+  useMockData = false
 ): Promise<GscDataRecord[]> {
-  // TEMPORARY: Check if we should use mock data
-  const useMockData = USE_MOCK_IMPORT_DATA?.toLowerCase() === "true";
-
   if (useMockData) {
     console.log("[fetchImportData] Using mock data from fixtures (USE_MOCK_IMPORT_DATA=true)");
 
@@ -238,16 +235,18 @@ export async function batchInsertRecords(
  * @param supabase - Supabase client
  * @param sourceUrl - URL to fetch data from
  * @param signal - AbortSignal for timeout/cancellation
+ * @param useMockData - Whether to use mock data instead of fetching from sourceUrl
  * @returns Import result with success status and row count
  */
 export async function runImport(
   supabase: SupabaseClient<Database>,
   sourceUrl: string,
-  signal: AbortSignal
+  signal: AbortSignal,
+  useMockData = false
 ): Promise<ImportServiceResult> {
   try {
     // Step 1: Fetch data from source
-    const rawRecords = await fetchImportData(sourceUrl, ImportConfig.MAX_BYTES, signal);
+    const rawRecords = await fetchImportData(sourceUrl, ImportConfig.MAX_BYTES, signal, useMockData);
 
     if (rawRecords.length === 0) {
       return {
