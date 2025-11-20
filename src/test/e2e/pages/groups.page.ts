@@ -24,12 +24,12 @@ export class GroupsPage {
     // Wait for the API response after filling the search input
     // This accounts for the 300ms debounce + network request
     const responsePromise = this.page.waitForResponse(
-      (response) => response.url().includes('/api/groups') && response.status() === 200,
+      (response) => response.url().includes("/api/groups") && response.status() === 200,
       { timeout: 5000 }
     );
-    
+
     await this.searchInput.fill(term);
-    
+
     // Wait for the debounced search to trigger and complete
     await responsePromise;
   }
