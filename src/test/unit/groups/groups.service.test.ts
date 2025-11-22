@@ -12,7 +12,7 @@ import {
   createSupabaseClientMock,
   createPostgrestQueryBuilderMock,
   type PostgrestQueryBuilderMock,
-} from "../../utils/mockSupabaseClient";
+} from "@/test/utils/mockSupabaseClient";
 
 // Mock dependencies
 vi.mock("@/lib/services/group-items.service", () => ({

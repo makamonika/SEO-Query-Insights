@@ -55,7 +55,6 @@ export function GroupsPage() {
   // Group actions (CRUD operations)
   const { isRenamingId, isDeletingId, handleRename, handleDelete, handleView } = useGroupActions({
     refetch,
-    setLiveMessage,
     setEditingId,
   });
 

@@ -11,7 +11,7 @@ interface GroupsToolbarProps {
 export function GroupsToolbar({ search, onSearchChange, onGenerateAI, isGeneratingAI }: GroupsToolbarProps) {
   return (
     <div className="flex items-center gap-4 mb-6">
-      <SearchInput value={search} onChange={onSearchChange} placeholder="Search groups..." />
+      <SearchInput value={search} onChange={onSearchChange} placeholder="Search groups..." ariaLabel="Search groups" />
       <GroupWithAIButton onGenerate={onGenerateAI} isGenerating={isGeneratingAI} />
     </div>
   );

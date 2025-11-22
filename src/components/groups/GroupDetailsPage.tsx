@@ -10,7 +10,6 @@ import { AddQueriesToGroupModal } from "./AddQueriesToGroupModal";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, Trash2Icon, PlusIcon } from "lucide-react";
-import { LiveRegion } from "@/components/queries/LiveRegion";
 import { sortQueries } from "@/lib/query-sorting";
 import type { QuerySortField, SortOrder } from "@/types";
 
@@ -23,7 +22,6 @@ export interface GroupDetailsPageProps {
  * Displays group header, metrics, and member queries with edit/delete capabilities
  */
 export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
-  const [liveMessage, setLiveMessage] = useState<string>();
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     type: "delete-group" | "remove-query";
@@ -60,7 +58,6 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
   // Group actions (rename, delete)
   const { isRenamingId, isDeletingId, handleRename, handleDelete } = useGroupActions({
     refetch: refetchGroup,
-    setLiveMessage,
   });
 
   // Remove query from group
@@ -129,10 +126,8 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
       // Refresh both members list and group metrics
       refetchMembers();
       refetchGroup();
-      setLiveMessage(`Removed "${confirmDialog.queryText}" from group`);
     } catch {
       // Error already handled by hook with toast
-      setLiveMessage(`Failed to remove query from group`);
     }
   };
 
@@ -144,14 +139,8 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
       refetchMembers();
       refetchGroup();
       setAddQueriesModalOpen(false);
-      if (result.addedCount > 0) {
-        setLiveMessage(`Added ${result.addedCount} ${result.addedCount === 1 ? "query" : "queries"} to group`);
-      } else {
-        setLiveMessage("All selected queries were already in the group");
-      }
     } catch (err) {
       // Error already handled by hook with toast
-      setLiveMessage(`Failed to add queries to group`);
       throw err; // Re-throw to prevent modal from closing
     }
   };
@@ -313,8 +302,6 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
         existingQueryIds={existingQueryIds}
         groupName={group.name}
       />
-
-      <LiveRegion message={liveMessage} />
     </div>
   );
 }

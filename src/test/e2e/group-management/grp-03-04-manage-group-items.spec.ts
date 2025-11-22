@@ -1,8 +1,8 @@
-import { test, expect } from "../fixtures/test";
-import { AddQueriesModal, GroupDetailsPage } from "../pages";
-import { fetchBaselineQueriesWithIds } from "../utils/supabase-admin";
-import { computeGroupMetrics } from "../helpers/metrics";
-import { createGroupViaApi } from "../helpers/groups";
+import { test, expect } from "@/test/e2e/fixtures/test";
+import { AddQueriesModal, GroupDetailsPage } from "@/test/e2e/pages";
+import { fetchBaselineQueriesWithIds } from "@/test/e2e/utils/supabase-admin";
+import { computeGroupMetrics } from "@/test/e2e/helpers/metrics";
+import { createGroupViaApi } from "@/test/e2e/helpers/groups";
 
 test.describe.serial("Group Management - Manage Group Items", () => {
   test("GRP-03 Add Queries to Existing Group", async ({ page }) => {
@@ -86,7 +86,8 @@ test.describe.serial("Group Management - Manage Group Items", () => {
     ]);
 
     expect(removeResponse.ok()).toBe(true);
-    await expect(page.getByRole("status")).toContainText(`Removed "${queryC.query_text}" from group`);
+    // Verify toast notification appears with success message
+    await expect(page.getByText("Removed from group")).toBeVisible();
     await detailsPage.expectQueryAbsent(queryC.query_text);
     await detailsPage.expectQueryCount(metricsAfter.queryCount);
     await detailsPage.expectMetricsSummary(metricsAfter);

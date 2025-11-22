@@ -1,4 +1,4 @@
-import type { AggregatedMetrics, QueryDto } from "../types";
+import type { AggregatedMetrics, QueryDto } from "@/types";
 
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);

@@ -11,7 +11,7 @@ export class GroupsPage {
 
   constructor(page: Page) {
     this.page = page;
-    this.searchInput = page.getByRole("searchbox", { name: "Search queries" });
+    this.searchInput = page.getByRole("searchbox", { name: "Search groups" });
     this.table = page.locator("#groups-list");
   }
 
@@ -58,10 +58,13 @@ export class GroupsPage {
   }
 
   async expectGroupVisible(name: string): Promise<void> {
-    await expect(this.table.getByRole("row", { name: new RegExp(name) })).toBeVisible();
+    // Wait for the table to have content, then check for the group name
+    // Use .first() to handle both desktop (table cell) and mobile (card heading) layouts
+    await expect(this.table.getByText(name).first()).toBeVisible();
   }
 
   async expectGroupAbsent(name: string): Promise<void> {
-    await expect(this.table.getByRole("row", { name: new RegExp(name) })).toHaveCount(0);
+    // Check that the group name doesn't appear in either desktop table or mobile card
+    await expect(this.table.getByText(name)).toHaveCount(0);
   }
 }

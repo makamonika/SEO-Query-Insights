@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
-import { deleteItemParamsSchema } from "../../../_schemas/groupItem";
-import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "../../../../../lib/auth/utils";
+import { deleteItemParamsSchema } from "@/pages/api/_schemas/groupItem";
+import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "@/lib/auth/utils";
 import { GroupNotFoundError, removeGroupItem } from "@/lib/services/group-items.service";
 import type { ErrorResponse } from "@/types";
 

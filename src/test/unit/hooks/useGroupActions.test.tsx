@@ -93,7 +93,6 @@ async function finishAsyncAction<T>(promise: Promise<T>) {
 
 describe("useGroupActions Hook", () => {
   const mockRefetch = vi.fn();
-  const mockSetLiveMessage = vi.fn();
   const mockSetEditingId = vi.fn();
 
   beforeEach(() => {
@@ -125,7 +124,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -151,7 +149,6 @@ describe("useGroupActions Hook", () => {
       expect(toast.success).toHaveBeenCalledWith("Group created", {
         description: 'Group "Test Group" created with 2 queries',
       });
-      expect(mockSetLiveMessage).toHaveBeenCalledWith('Group "Test Group" created with 2 queries');
       expect(mockRefetch).toHaveBeenCalled();
     });
 
@@ -163,7 +160,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -204,7 +200,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -234,7 +229,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -259,7 +253,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -281,7 +274,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -310,7 +302,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
           setEditingId: mockSetEditingId,
         })
       );
@@ -329,7 +320,6 @@ describe("useGroupActions Hook", () => {
       expect(toast.success).toHaveBeenCalledWith("Group renamed", {
         description: `Group renamed to "${newName}"`,
       });
-      expect(mockSetLiveMessage).toHaveBeenCalledWith(`Group renamed to "${newName}"`);
       expect(mockSetEditingId).toHaveBeenCalledWith(null);
       expect(mockRefetch).toHaveBeenCalled();
     });
@@ -348,7 +338,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -373,7 +362,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -404,7 +392,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -435,7 +422,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -461,7 +447,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -499,7 +484,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -515,7 +499,6 @@ describe("useGroupActions Hook", () => {
       expect(toast.success).toHaveBeenCalledWith("Group deleted", {
         description: "Group deleted successfully",
       });
-      expect(mockSetLiveMessage).toHaveBeenCalledWith("Group deleted successfully");
       expect(mockRefetch).toHaveBeenCalled();
     });
 
@@ -534,7 +517,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -560,7 +542,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -599,7 +580,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -624,7 +604,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -653,7 +632,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -680,7 +658,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 
@@ -707,7 +684,6 @@ describe("useGroupActions Hook", () => {
       const { result } = renderHook(() =>
         useGroupActions({
           refetch: mockRefetch,
-          setLiveMessage: mockSetLiveMessage,
         })
       );
 

@@ -1,5 +1,5 @@
-import type { Tables } from "../db/database.types";
-import type { GroupDto, QueryDto } from "../types";
+import type { Tables } from "@/db/database.types";
+import type { GroupDto, QueryDto } from "@/types";
 
 export function mapQueryRowToDto(row: Tables<"queries">): QueryDto {
   return {

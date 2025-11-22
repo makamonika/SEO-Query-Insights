@@ -1,8 +1,8 @@
-import { test, expect } from "../fixtures/test";
-import { CreateGroupModal, GroupsPage, QueriesPage } from "../pages";
-import { getBaselineQueriesSeed } from "../utils/supabase-admin";
-import { computeGroupMetrics } from "../helpers/metrics";
-import { waitForGroupById } from "../helpers/groups";
+import { test, expect } from "@/test/e2e/fixtures/test";
+import { CreateGroupModal, GroupsPage, QueriesPage } from "@/test/e2e/pages";
+import { getBaselineQueriesSeed } from "@/test/e2e/utils/supabase-admin";
+import { computeGroupMetrics } from "@/test/e2e/helpers/metrics";
+import { waitForGroupById } from "@/test/e2e/helpers/groups";
 
 test.describe("Group Management - GRP-01 Create Group", () => {
   test("creates a group from selected queries", async ({ page }) => {
@@ -55,9 +55,10 @@ test.describe("Group Management - GRP-01 Create Group", () => {
     });
 
     await test.step("Verify success feedback is announced", async () => {
-      await expect(page.getByRole("status")).toContainText(
-        `Group "${groupName}" created with ${selectedQueries.length} queries`
-      );
+      // Verify toast notification appears with success message
+      await expect(
+        page.getByText(`Group "${groupName}" created with ${selectedQueries.length} queries`)
+      ).toBeVisible();
     });
 
     const expectedMetrics = computeGroupMetrics(selectedQueries);

@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useCallback, type ReactNode } from "react";
 import { toast } from "sonner";
 import type { AiClusterSuggestionDto, AcceptClustersRequestDto, QueryDto } from "@/types";
+import { parseErrorResponse, getErrorMessage } from "@/lib/api-error-handler";
 
 // ============================================================================
 // Types
@@ -202,10 +203,10 @@ export function AIClustersProvider({ children }: AIClustersProviderProps) {
       console.log("AI clusters response status:", response.status);
 
       if (!response.ok) {
-        // Try to get error message from response body
-        const errorText = await response.text();
-        console.error("AI clusters error response:", errorText);
+        const errorResponse = await parseErrorResponse(response);
+        const errorMessage = getErrorMessage(errorResponse, `Failed to generate clusters: ${response.statusText}`);
 
+        // Handle specific error codes with user-friendly messages
         if (response.status === 401) {
           toast.error("Authentication required", {
             description: "Redirecting to login...",
@@ -216,15 +217,30 @@ export function AIClustersProvider({ children }: AIClustersProviderProps) {
           return;
         }
 
-        if (response.status === 429) {
+        if (response.status === 429 || errorResponse?.error.code === "rate_limited") {
           toast.error("Rate limited", {
-            description: "Too many requests. Please try again in a minute.",
+            description: errorMessage || "Too many requests. Please try again in a minute.",
           });
-          dispatch({ type: "SET_LIVE_MESSAGE", payload: "Rate limited. Try again later." });
           return;
         }
 
-        throw new Error(`Failed to generate clusters: ${response.statusText} - ${errorText}`);
+        if (response.status === 503 || response.status === 504) {
+          const isRetryable = errorResponse?.error.details?.retryable === true;
+          toast.error("Service temporarily unavailable", {
+            description:
+              errorMessage ||
+              (isRetryable
+                ? "The AI service is busy. Please try again in a moment."
+                : "The AI service is unavailable. Please try again later."),
+          });
+          return;
+        }
+
+        // Generic error handling
+        toast.error("Failed to generate AI clusters", {
+          description: errorMessage,
+        });
+        return;
       }
 
       const suggestions: AiClusterSuggestionDto[] = await response.json();
@@ -239,14 +255,13 @@ export function AIClustersProvider({ children }: AIClustersProviderProps) {
       toast.success("AI Clusters Generated", {
         description: successMsg,
       });
-      dispatch({ type: "SET_LIVE_MESSAGE", payload: successMsg });
     } catch (err) {
       console.error("Generate AI clusters error:", err);
-      const message = err instanceof Error ? err.message : "Unknown error";
+      // Network errors or other unexpected errors
+      const message = err instanceof Error ? err.message : "Unknown error occurred";
       toast.error("Failed to generate AI clusters", {
-        description: message,
+        description: message.includes("fetch") ? "Network error. Please check your connection and try again." : message,
       });
-      dispatch({ type: "SET_LIVE_MESSAGE", payload: `Failed to generate clusters: ${message}` });
     } finally {
       dispatch({ type: "SET_GENERATING", payload: false });
     }
@@ -335,7 +350,6 @@ export function AIClustersProvider({ children }: AIClustersProviderProps) {
           toast.error("Validation error", {
             description: errorData.error?.message || "Some clusters are invalid.",
           });
-          dispatch({ type: "SET_LIVE_MESSAGE", payload: "Validation error. Please check your clusters." });
           return;
         }
 
@@ -348,7 +362,6 @@ export function AIClustersProvider({ children }: AIClustersProviderProps) {
       toast.success("Clusters Accepted", {
         description: successMsg,
       });
-      dispatch({ type: "SET_LIVE_MESSAGE", payload: successMsg });
 
       // Navigate to groups page
       setTimeout(() => {
@@ -359,7 +372,6 @@ export function AIClustersProvider({ children }: AIClustersProviderProps) {
       toast.error("Failed to accept clusters", {
         description: message,
       });
-      dispatch({ type: "SET_LIVE_MESSAGE", payload: `Failed to accept clusters: ${message}` });
     } finally {
       dispatch({ type: "SET_ACCEPTING", payload: false });
     }

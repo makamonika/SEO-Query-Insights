@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
 import type { AiClusterSuggestionDto } from "@/types";
+import { parseErrorResponse, getErrorMessage } from "@/lib/api-error-handler";
 
 export interface UseAIClustersParams {
   setLiveMessage: (message: string) => void;
@@ -42,6 +43,10 @@ export function useAIClusters({
       const response = await fetch("/api/ai-clusters");
 
       if (!response.ok) {
+        const errorResponse = await parseErrorResponse(response);
+        const errorMessage = getErrorMessage(errorResponse, `Failed to generate clusters: ${response.statusText}`);
+
+        // Handle specific error codes with user-friendly messages
         if (response.status === 401) {
           toast.error("Authentication required", {
             description: "Redirecting to login...",
@@ -52,15 +57,30 @@ export function useAIClusters({
           return;
         }
 
-        if (response.status === 429) {
+        if (response.status === 429 || errorResponse?.error.code === "rate_limited") {
           toast.error("Rate limited", {
-            description: "Too many requests. Please try again in a minute.",
+            description: errorMessage || "Too many requests. Please try again in a minute.",
           });
-          setLiveMessage("Rate limited. Try again later.");
           return;
         }
 
-        throw new Error(`Failed to generate clusters: ${response.statusText}`);
+        if (response.status === 503 || response.status === 504) {
+          const isRetryable = errorResponse?.error.details?.retryable === true;
+          toast.error("Service temporarily unavailable", {
+            description:
+              errorMessage ||
+              (isRetryable
+                ? "The AI service is busy. Please try again in a moment."
+                : "The AI service is unavailable. Please try again later."),
+          });
+          return;
+        }
+
+        // Generic error handling
+        toast.error("Failed to generate AI clusters", {
+          description: errorMessage,
+        });
+        return;
       }
 
       const suggestions: AiClusterSuggestionDto[] = await response.json();
@@ -68,18 +88,17 @@ export function useAIClusters({
       toast.success("AI Clusters Generated", {
         description: successMsg,
       });
-      setLiveMessage(successMsg);
 
       // Call the callback if provided (for injecting into context)
       if (onSuggestionsGenerated) {
         onSuggestionsGenerated(suggestions);
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unknown error";
+      // Network errors or other unexpected errors
+      const message = err instanceof Error ? err.message : "Unknown error occurred";
       toast.error("Failed to generate AI clusters", {
-        description: message,
+        description: message.includes("fetch") ? "Network error. Please check your connection and try again." : message,
       });
-      setLiveMessage(`Failed to generate clusters: ${message}`);
     } finally {
       setIsGeneratingAI(false);
     }

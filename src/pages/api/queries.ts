@@ -1,11 +1,11 @@
 import type { APIRoute } from "astro";
 
-import type { GetQueriesResponseDto, ErrorResponse } from "../../types";
-import { QUERIES_COLUMNS } from "../../lib/db/projections";
-import type { Tables } from "../../db/database.types";
+import type { GetQueriesResponseDto, ErrorResponse } from "@/types";
+import { QUERIES_COLUMNS } from "@/lib/db/projections";
+import type { Tables } from "@/db/database.types";
 import { queryParamsSchema } from "./_schemas/query";
-import { mapQueryRowToDto } from "../../lib/mappers";
-import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "../../lib/auth/utils";
+import { mapQueryRowToDto } from "@/lib/mappers";
+import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "@/lib/auth/utils";
 
 export const prerender = false;
 

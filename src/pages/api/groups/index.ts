@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
 import type { ErrorResponse, GetGroupsResponseDto, GroupDto } from "@/types";
-import { groupListQuerySchema, createGroupSchema } from "../_schemas/group";
-import { listGroups, createGroup, DuplicateGroupNameError } from "../../../lib/services/groups.service";
-import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "../../../lib/auth/utils";
+import { groupListQuerySchema, createGroupSchema } from "@/pages/api/_schemas/group";
+import { listGroups, createGroup, DuplicateGroupNameError } from "@/lib/services/groups.service";
+import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "@/lib/auth/utils";
 
 export const prerender = false;
 

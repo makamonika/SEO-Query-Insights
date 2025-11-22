@@ -1,7 +1,7 @@
-import { test, expect } from "../fixtures/test";
-import { GroupsPage, GroupDetailsPage } from "../pages";
-import { fetchBaselineQueriesWithIds } from "../utils/supabase-admin";
-import { createGroupViaApi } from "../helpers/groups";
+import { test, expect } from "@/test/e2e/fixtures/test";
+import { GroupsPage, GroupDetailsPage } from "@/test/e2e/pages";
+import { fetchBaselineQueriesWithIds } from "@/test/e2e/utils/supabase-admin";
+import { createGroupViaApi } from "@/test/e2e/helpers/groups";
 
 test.describe("Group Management - GRP-06 Delete Group", () => {
   test("deletes an existing group and removes access", async ({ page }) => {

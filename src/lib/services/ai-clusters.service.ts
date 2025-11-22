@@ -1,9 +1,9 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Tables } from "../../db/database.types";
-import type { AiClusterSuggestionDto, AcceptClusterDto, QueryDto, GroupDto } from "../../types";
-import { QUERIES_COLUMNS } from "../db/projections";
-import { calculateGroupMetricsFromQueries } from "../metrics";
-import { mapQueryRowToDto, mapGroupRowBase } from "../mappers";
+import type { Database, Tables } from "@/db/database.types";
+import type { AiClusterSuggestionDto, AcceptClusterDto, QueryDto, GroupDto } from "@/types";
+import { QUERIES_COLUMNS } from "@/lib/db/projections";
+import { calculateGroupMetricsFromQueries } from "@/lib/metrics";
+import { mapQueryRowToDto, mapGroupRowBase } from "@/lib/mappers";
 import { OpenRouterService, OpenRouterError } from "./openrouter.service";
 import type { JsonSchemaConfig } from "./openrouter.types";
 import { recomputeAndPersistGroupMetrics } from "./group-metrics.service";
@@ -233,8 +233,20 @@ export async function generateClusters(
       }
     } catch (error) {
       if (error instanceof OpenRouterError) {
-        console.error(`OpenRouter error for batch ${batchIndex + 1}:`, error.message);
-        throw new Error(`AI clustering failed for batch ${batchIndex + 1}: ${error.message}`);
+        console.error(`OpenRouter error for batch ${batchIndex + 1}:`, {
+          code: error.code,
+          message: error.message,
+          userMessage: error.userMessage,
+          statusCode: error.statusCode,
+          retryable: error.retryable,
+        });
+        // Preserve OpenRouterError with context
+        throw new OpenRouterError(
+          `AI clustering failed for batch ${batchIndex + 1}: ${error.userMessage}`,
+          error.code,
+          error.statusCode,
+          error.retryable
+        );
       }
       throw error;
     }

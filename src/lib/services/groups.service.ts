@@ -1,8 +1,8 @@
-import type { Tables } from "../../db/database.types";
+import type { Tables } from "@/db/database.types";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../../db/database.types";
-import type { GroupDto } from "../../types";
-import { mapGroupRowBase } from "../mappers";
+import type { Database } from "@/db/database.types";
+import type { GroupDto } from "@/types";
+import { mapGroupRowBase } from "@/lib/mappers";
 import { recomputeAndPersistGroupMetrics } from "./group-metrics.service";
 import { addGroupItems } from "./group-items.service";
 

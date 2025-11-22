@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { QUERY_SORT_FIELDS, SORT_ORDERS } from "../../../types";
+import { QUERY_SORT_FIELDS, SORT_ORDERS } from "@/types";
 
 /**
  * Validation schema for GET /api/queries query parameters

@@ -1,6 +1,6 @@
 import { defineMiddleware } from "astro:middleware";
 
-import { createSupabaseServerInstance } from "../db/supabase.client";
+import { createSupabaseServerInstance } from "@/db/supabase.client";
 
 // Public routes that don't require authentication
 const PUBLIC_ROUTES = [

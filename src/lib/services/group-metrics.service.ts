@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Tables } from "../../db/database.types";
-import { QUERIES_COLUMNS } from "../db/projections";
-import { mapQueryRowToDto } from "../mappers";
-import { calculateGroupMetricsFromQueries } from "../metrics";
+import type { Database, Tables } from "@/db/database.types";
+import { QUERIES_COLUMNS } from "@/lib/db/projections";
+import { mapQueryRowToDto } from "@/lib/mappers";
+import { calculateGroupMetricsFromQueries } from "@/lib/metrics";
 import type { AggregatedMetrics, RecomputeResult } from "@/types";
 
 export async function recomputeAndPersistGroupMetrics(

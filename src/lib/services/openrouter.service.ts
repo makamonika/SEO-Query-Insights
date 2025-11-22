@@ -10,10 +10,116 @@ import type {
 
 // ---- Error Handling --------------------------------------------------------
 
+/**
+ * Error codes for different OpenRouter error scenarios
+ */
+export enum OpenRouterErrorCode {
+  CONFIGURATION_ERROR = "configuration_error",
+  VALIDATION_ERROR = "validation_error",
+  NETWORK_ERROR = "network_error",
+  TIMEOUT_ERROR = "timeout_error",
+  RATE_LIMIT_ERROR = "rate_limit_error",
+  AUTHENTICATION_ERROR = "authentication_error",
+  SERVER_ERROR = "server_error",
+  PARSE_ERROR = "parse_error",
+  ABORTED_ERROR = "aborted_error",
+  UNKNOWN_ERROR = "unknown_error",
+}
+
+/**
+ * Enhanced OpenRouter error with structured error information
+ * Follows best practices: early returns, guard clauses, structured error types
+ */
 export class OpenRouterError extends Error {
-  constructor(message: string) {
+  public readonly code: OpenRouterErrorCode;
+  public readonly statusCode?: number;
+  public readonly retryable: boolean;
+  public readonly userMessage: string;
+
+  constructor(
+    message: string,
+    code: OpenRouterErrorCode = OpenRouterErrorCode.UNKNOWN_ERROR,
+    statusCode?: number,
+    retryable = false
+  ) {
     super(message);
     this.name = "OpenRouterError";
+    this.code = code;
+    this.statusCode = statusCode;
+    this.retryable = retryable;
+    this.userMessage = this.getUserFriendlyMessage(code, message);
+  }
+
+  /**
+   * Get user-friendly error message based on error code
+   */
+  private getUserFriendlyMessage(code: OpenRouterErrorCode, fallback: string): string {
+    const messages: Record<OpenRouterErrorCode, string> = {
+      [OpenRouterErrorCode.CONFIGURATION_ERROR]: "OpenRouter service is not properly configured.",
+      [OpenRouterErrorCode.VALIDATION_ERROR]: "Invalid request parameters provided.",
+      [OpenRouterErrorCode.NETWORK_ERROR]: "Network connection failed. Please check your internet connection.",
+      [OpenRouterErrorCode.TIMEOUT_ERROR]: "Request timed out. The AI service is taking too long to respond.",
+      [OpenRouterErrorCode.RATE_LIMIT_ERROR]: "Rate limit exceeded. Please wait a moment before trying again.",
+      [OpenRouterErrorCode.AUTHENTICATION_ERROR]: "Authentication failed. Please check your API key.",
+      [OpenRouterErrorCode.SERVER_ERROR]: "AI service is temporarily unavailable. Please try again later.",
+      [OpenRouterErrorCode.PARSE_ERROR]: "Failed to process AI response. Please try again.",
+      [OpenRouterErrorCode.ABORTED_ERROR]: "Request was cancelled.",
+      [OpenRouterErrorCode.UNKNOWN_ERROR]: fallback || "An unexpected error occurred while contacting the AI service.",
+    };
+
+    return messages[code] || fallback;
+  }
+
+  /**
+   * Create error from HTTP status code
+   */
+  static fromStatusCode(status: number, message?: string): OpenRouterError {
+    if (status === 401 || status === 403) {
+      return new OpenRouterError(
+        message || `Authentication failed (${status})`,
+        OpenRouterErrorCode.AUTHENTICATION_ERROR,
+        status,
+        false
+      );
+    }
+
+    if (status === 408 || status === 504) {
+      return new OpenRouterError(
+        message || `Request timed out (${status})`,
+        OpenRouterErrorCode.TIMEOUT_ERROR,
+        status,
+        true
+      );
+    }
+
+    if (status === 429) {
+      return new OpenRouterError(
+        message || `Rate limit exceeded (${status})`,
+        OpenRouterErrorCode.RATE_LIMIT_ERROR,
+        status,
+        true
+      );
+    }
+
+    if (status >= 500 && status < 600) {
+      return new OpenRouterError(message || `Server error (${status})`, OpenRouterErrorCode.SERVER_ERROR, status, true);
+    }
+
+    if (status >= 400 && status < 500) {
+      return new OpenRouterError(
+        message || `Client error (${status})`,
+        OpenRouterErrorCode.VALIDATION_ERROR,
+        status,
+        false
+      );
+    }
+
+    return new OpenRouterError(
+      message || `Unexpected status code: ${status}`,
+      OpenRouterErrorCode.UNKNOWN_ERROR,
+      status,
+      false
+    );
   }
 }
 
@@ -50,7 +156,7 @@ export class OpenRouterService {
   private constructor(config: OpenRouterServiceConfig) {
     const parsed = ConfigSchema.safeParse(config);
     if (!parsed.success) {
-      throw new OpenRouterError(parsed.error.message);
+      throw new OpenRouterError(parsed.error.message, OpenRouterErrorCode.CONFIGURATION_ERROR);
     }
 
     this._config = Object.freeze({
@@ -67,7 +173,10 @@ export class OpenRouterService {
   public static getInstance(config?: OpenRouterServiceConfig): OpenRouterService {
     if (!OpenRouterService._instance) {
       if (!config) {
-        throw new OpenRouterError("OpenRouterService requires configuration on first initialisation.");
+        throw new OpenRouterError(
+          "OpenRouterService requires configuration on first initialisation.",
+          OpenRouterErrorCode.CONFIGURATION_ERROR
+        );
       }
 
       OpenRouterService._instance = new OpenRouterService(config);
@@ -79,7 +188,7 @@ export class OpenRouterService {
   public setModel(model: string): void {
     const trimmed = model?.trim();
     if (!trimmed) {
-      throw new OpenRouterError("Model name cannot be empty.");
+      throw new OpenRouterError("Model name cannot be empty.", OpenRouterErrorCode.VALIDATION_ERROR);
     }
 
     this._model = trimmed;
@@ -98,7 +207,7 @@ export class OpenRouterService {
 
   private buildPayload(options: ChatOptions, stream = false): OpenRouterRequestPayload {
     if (!options?.userPrompt || !options.userPrompt.trim()) {
-      throw new OpenRouterError("`userPrompt` is required.");
+      throw new OpenRouterError("`userPrompt` is required.", OpenRouterErrorCode.VALIDATION_ERROR);
     }
 
     const systemPrompt = options.systemPrompt?.trim();
@@ -160,7 +269,7 @@ export class OpenRouterService {
       if (signal) {
         if (signal.aborted) {
           clearTimeout(timeoutId);
-          throw new OpenRouterError("Request aborted by caller.");
+          throw new OpenRouterError("Request aborted by caller.", OpenRouterErrorCode.ABORTED_ERROR);
         }
 
         signal.addEventListener("abort", abortHandler, { once: true });
@@ -180,7 +289,7 @@ export class OpenRouterService {
 
         const shouldRetry = this.shouldRetry(response.status) && attempt < maxAttempts;
         if (!shouldRetry) {
-          throw new OpenRouterError(`OpenRouter request failed with status ${response.status}.`);
+          throw OpenRouterError.fromStatusCode(response.status);
         }
 
         await this.sleep(RETRY_DELAY_MS);
@@ -189,19 +298,32 @@ export class OpenRouterService {
         const isAbortError = error instanceof DOMException && error.name === "AbortError";
 
         if (signal?.aborted) {
-          throw new OpenRouterError("Request aborted by caller.");
+          throw new OpenRouterError("Request aborted by caller.", OpenRouterErrorCode.ABORTED_ERROR);
         }
 
         if (isAbortError && attempt >= maxAttempts) {
-          throw new OpenRouterError("OpenRouter request timed out.");
+          throw new OpenRouterError(
+            "OpenRouter request timed out.",
+            OpenRouterErrorCode.TIMEOUT_ERROR,
+            undefined,
+            true
+          );
         }
 
         if (attempt >= maxAttempts) {
           if (error instanceof OpenRouterError) {
             throw error;
           }
+
+          // Network errors are typically retryable
+          const isNetworkError = error instanceof TypeError && error.message.includes("fetch");
           const message = error instanceof Error ? error.message : "Unknown error while contacting OpenRouter.";
-          throw new OpenRouterError(message);
+          throw new OpenRouterError(
+            message,
+            isNetworkError ? OpenRouterErrorCode.NETWORK_ERROR : OpenRouterErrorCode.UNKNOWN_ERROR,
+            undefined,
+            isNetworkError
+          );
         }
 
         await this.sleep(RETRY_DELAY_MS);
@@ -214,7 +336,7 @@ export class OpenRouterService {
     }
 
     const message = lastError instanceof Error ? lastError.message : "OpenRouter request failed.";
-    throw new OpenRouterError(message);
+    throw new OpenRouterError(message, OpenRouterErrorCode.UNKNOWN_ERROR, undefined, false);
   }
 
   private async parseResponse(response: Response): Promise<ChatResponse> {
@@ -223,16 +345,16 @@ export class OpenRouterService {
       json = await response.json();
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to parse response body.";
-      throw new OpenRouterError(message);
+      throw new OpenRouterError(message, OpenRouterErrorCode.PARSE_ERROR);
     }
 
     if (!this.isResponseDto(json)) {
-      throw new OpenRouterError("Unexpected response structure from OpenRouter.");
+      throw new OpenRouterError("Unexpected response structure from OpenRouter.", OpenRouterErrorCode.PARSE_ERROR);
     }
 
     const choiceWithMessage = json.choices.find((choice) => choice.message?.content);
     if (!choiceWithMessage?.message) {
-      throw new OpenRouterError("OpenRouter response did not include a message.");
+      throw new OpenRouterError("OpenRouter response did not include a message.", OpenRouterErrorCode.PARSE_ERROR);
     }
 
     return {

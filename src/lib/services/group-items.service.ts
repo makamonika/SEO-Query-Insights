@@ -6,11 +6,11 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database, Tables } from "../../db/database.types";
-import type { QueryDto } from "../../types";
-import { QUERIES_COLUMNS } from "../db/projections";
-import { mapQueryRowToDto } from "../mappers";
-import { recomputeAndPersistGroupMetrics } from "../services/group-metrics.service";
+import type { Database, Tables } from "@/db/database.types";
+import type { QueryDto } from "@/types";
+import { QUERIES_COLUMNS } from "@/lib/db/projections";
+import { mapQueryRowToDto } from "@/lib/mappers";
+import { recomputeAndPersistGroupMetrics } from "./group-metrics.service";
 
 export class GroupNotFoundError extends Error {
   constructor(message = "Group not found") {

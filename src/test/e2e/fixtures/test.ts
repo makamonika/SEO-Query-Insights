@@ -1,5 +1,5 @@
 import { test as base, expect } from "@playwright/test";
-import { cleanupGroupsForUser, ensureQaUser, resetBaselineQueries } from "../utils/supabase-admin";
+import { cleanupGroupsForUser, ensureQaUser, resetBaselineQueries } from "@/test/e2e/utils/supabase-admin";
 
 type QaUserFixture = Awaited<ReturnType<typeof ensureQaUser>>;
 

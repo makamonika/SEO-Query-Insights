@@ -68,7 +68,6 @@ export function QueriesPage() {
   // Group actions (create group)
   const { isCreatingGroup, createGroupError, handleCreate, clearCreateError } = useGroupActions({
     refetch,
-    setLiveMessage,
   });
 
   // Fetch initial import status on mount

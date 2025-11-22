@@ -1,5 +1,5 @@
 import type { FullConfig } from "@playwright/test";
-import { cleanupAllTestData, ensureQaUser } from "../utils/supabase-admin";
+import { cleanupAllTestData, ensureQaUser } from "@/test/e2e/utils/supabase-admin";
 
 /**
  * Global teardown function that runs after all tests complete.

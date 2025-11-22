@@ -7,10 +7,10 @@
  */
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../../db/database.types";
-import type { TablesInsert } from "../../db/database.types";
-import { ImportConfig } from "../imports/config";
-import { calculateCtrDecimal, computeIsOpportunity } from "../metrics";
+import type { Database } from "@/db/database.types";
+import type { TablesInsert } from "@/db/database.types";
+import { ImportConfig } from "@/lib/imports/config";
+import { calculateCtrDecimal, computeIsOpportunity } from "@/lib/metrics";
 
 /**
  * Raw GSC data record from import source

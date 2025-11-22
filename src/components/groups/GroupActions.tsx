@@ -26,12 +26,11 @@ export function GroupActions({
   groupName,
   variant = "table",
 }: GroupActionsProps) {
-  const buttonSize = variant === "card" ? "h-9" : "h-8 w-8 p-0";
-  const buttonClass = variant === "card" ? "h-9" : buttonSize;
+  const buttonClass = variant === "card" ? "h-9" : "h-8";
 
   if (isDeleteConfirming) {
     return (
-      <div className={`flex items-center ${variant === "card" ? "justify-end gap-2" : "justify-end gap-2"}`}>
+      <div className="flex items-center justify-end gap-2">
         <span className="text-sm text-muted-foreground">Delete?</span>
         <Button size="sm" variant="destructive" onClick={onDeleteConfirm} disabled={isDeleting} className={buttonClass}>
           Confirm

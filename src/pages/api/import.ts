@@ -20,11 +20,11 @@
 
 import type { APIRoute } from "astro";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Database } from "../../db/database.types";
-import type { ErrorResponse, ImportRunResultDto } from "../../types";
-import { buildDailyImportUrl, ImportConfig } from "../../lib/imports/config";
-import { runImport } from "../../lib/services/import.service";
-import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "../../lib/auth/utils";
+import type { Database } from "@/db/database.types";
+import type { ErrorResponse, ImportRunResultDto } from "@/types";
+import { buildDailyImportUrl, ImportConfig } from "@/lib/imports/config";
+import { runImport } from "@/lib/services/import.service";
+import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "@/lib/auth/utils";
 
 export const prerender = false;
 

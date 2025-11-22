@@ -47,6 +47,13 @@ export async function createGroupViaApi(page: Page, params: CreateGroupParams): 
   return created;
 }
 
+/**
+ * Helper to create a delay without using deprecated waitForTimeout
+ */
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export async function waitForGroupById(
   page: Page,
   groupId: string,
@@ -55,10 +62,12 @@ export async function waitForGroupById(
 ): Promise<void> {
   const maxAttempts = Math.ceil(timeout / interval);
   let lastError: Error | null = null;
+  let lastStatus: number | null = null;
 
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       const response = await page.request.get(`/api/groups/${groupId}`);
+      lastStatus = response.status();
       if (response.status() === 200) {
         return;
       }
@@ -67,11 +76,13 @@ export async function waitForGroupById(
     }
 
     if (attempt < maxAttempts - 1) {
-      await page.waitForTimeout(interval);
+      await delay(interval);
     }
   }
 
+  const statusInfo = lastStatus !== null ? ` (last status: ${lastStatus})` : "";
+  const errorInfo = lastError ? ` Last error: ${lastError.message}` : "";
   throw new Error(
-    `Timed out waiting for group ${groupId} to become available after ${maxAttempts} attempts. Last error: ${lastError?.message}`
+    `Timed out waiting for group ${groupId} to become available after ${maxAttempts} attempts.${statusInfo}${errorInfo}`
   );
 }

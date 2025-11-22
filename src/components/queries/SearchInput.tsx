@@ -5,9 +5,10 @@ interface SearchInputProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  ariaLabel?: string;
 }
 
-export function SearchInput({ value, onChange, placeholder = "Search queries..." }: SearchInputProps) {
+export function SearchInput({ value, onChange, placeholder = "Search queries...", ariaLabel }: SearchInputProps) {
   return (
     <div className="relative flex-1 max-w-sm">
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -17,7 +18,7 @@ export function SearchInput({ value, onChange, placeholder = "Search queries..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className="pl-9"
-        aria-label="Search queries"
+        aria-label={ariaLabel || "Search queries"}
       />
     </div>
   );

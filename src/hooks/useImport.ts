@@ -49,7 +49,6 @@ export function useImport(onSuccess?: () => void, onLiveMessage?: (message: stri
         setHasFailed(false);
         const successMsg = `Import completed successfully. ${result.rowCount} queries imported.`;
         toast.success(successMsg);
-        onLiveMessage?.(successMsg);
         onSuccess?.();
       } else {
         const errorMsg = result.error?.message || "Import failed";
@@ -57,7 +56,6 @@ export function useImport(onSuccess?: () => void, onLiveMessage?: (message: stri
         toast.error("Import failed", {
           description: errorMsg,
         });
-        onLiveMessage?.(`Import failed: ${errorMsg}`);
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : "Unknown error";
@@ -65,7 +63,6 @@ export function useImport(onSuccess?: () => void, onLiveMessage?: (message: stri
       toast.error("Import failed", {
         description: message,
       });
-      onLiveMessage?.(`Import failed: ${message}`);
     } finally {
       setIsImporting(false);
     }

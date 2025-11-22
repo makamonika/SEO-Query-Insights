@@ -4,7 +4,6 @@ import type { CreateGroupRequestDto, UpdateGroupRequestDto, ErrorResponse } from
 
 export interface UseGroupActionsParams {
   refetch: () => void;
-  setLiveMessage: (message: string) => void;
   setEditingId?: (id: string | null) => void;
 }
 
@@ -27,7 +26,6 @@ export interface UseGroupActionsResult {
  */
 export function useGroupActions({
   refetch,
-  setLiveMessage,
   setEditingId,
 }: UseGroupActionsParams): UseGroupActionsResult {
   const [isRenamingId, setIsRenamingId] = useState<string | null>(null);
@@ -78,7 +76,6 @@ export function useGroupActions({
         toast.success("Group renamed", {
           description: successMsg,
         });
-        setLiveMessage(successMsg);
         if (setEditingId) {
           setEditingId(null);
         }
@@ -88,12 +85,11 @@ export function useGroupActions({
         toast.error("Failed to rename group", {
           description: message,
         });
-        setLiveMessage(`Failed to rename group: ${message}`);
       } finally {
         setIsRenamingId(null);
       }
     },
-    [refetch, setLiveMessage, setEditingId]
+    [refetch, setEditingId]
   );
 
   // Delete group handler
@@ -121,19 +117,17 @@ export function useGroupActions({
         toast.success("Group deleted", {
           description: successMsg,
         });
-        setLiveMessage(successMsg);
         refetch();
       } catch (err) {
         const message = err instanceof Error ? err.message : "Unknown error";
         toast.error("Failed to delete group", {
           description: message,
         });
-        setLiveMessage(`Failed to delete group: ${message}`);
       } finally {
         setIsDeletingId(null);
       }
     },
-    [refetch, setLiveMessage]
+    [refetch]
   );
 
   // View group handler
@@ -186,7 +180,6 @@ export function useGroupActions({
         toast.success("Group created", {
           description: successMsg,
         });
-        setLiveMessage(successMsg);
         refetch();
         return true;
       } catch (err) {
@@ -194,13 +187,12 @@ export function useGroupActions({
         toast.error("Failed to create group", {
           description: message,
         });
-        setLiveMessage(`Failed to create group: ${message}`);
         return false;
       } finally {
         setIsCreatingGroup(false);
       }
     },
-    [refetch, setLiveMessage]
+    [refetch]
   );
 
   // Clear create error

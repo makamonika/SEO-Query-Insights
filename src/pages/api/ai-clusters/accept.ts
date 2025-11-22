@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
-import type { ErrorResponse, AcceptClustersResponseDto } from "../../../types";
-import { acceptClustersRequestSchema } from "../_schemas/aiCluster";
-import { acceptClusters } from "../../../lib/services/ai-clusters.service";
-import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "../../../lib/auth/utils";
+import type { ErrorResponse, AcceptClustersResponseDto } from "@/types";
+import { acceptClustersRequestSchema } from "@/pages/api/_schemas/aiCluster";
+import { acceptClusters } from "@/lib/services/ai-clusters.service";
+import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "@/lib/auth/utils";
 
 export const prerender = false;
 

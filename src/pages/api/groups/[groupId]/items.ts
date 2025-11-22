@@ -1,8 +1,8 @@
 import type { APIRoute } from "astro";
-import { pathParamsSchema } from "../../_schemas/group";
-import { addItemsBodySchema } from "../../_schemas/groupItem";
+import { pathParamsSchema } from "@/pages/api/_schemas/group";
+import { addItemsBodySchema } from "@/pages/api/_schemas/groupItem";
 import { addGroupItems, getGroupItems, GroupNotFoundError } from "@/lib/services/group-items.service";
-import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "../../../../lib/auth/utils";
+import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "@/lib/auth/utils";
 import type { ErrorResponse, GetGroupItemsResponseDto } from "@/types";
 
 export const prerender = false;
