@@ -134,14 +134,13 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
   // Handle add queries
   const handleAddQueries = async (queryIds: string[]) => {
     try {
-      const result = await addItems(groupId, queryIds);
+      await addItems(groupId, queryIds);
       // Refresh both members list and group metrics
       refetchMembers();
       refetchGroup();
       setAddQueriesModalOpen(false);
-    } catch (err) {
+    } catch {
       // Error already handled by hook with toast
-      throw err; // Re-throw to prevent modal from closing
     }
   };
 

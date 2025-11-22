@@ -56,9 +56,7 @@ test.describe("Group Management - GRP-01 Create Group", () => {
 
     await test.step("Verify success feedback is announced", async () => {
       // Verify toast notification appears with success message
-      await expect(
-        page.getByText(`Group "${groupName}" created with ${selectedQueries.length} queries`)
-      ).toBeVisible();
+      await expect(page.getByText(`Group "${groupName}" created with ${selectedQueries.length} queries`)).toBeVisible();
     });
 
     const expectedMetrics = computeGroupMetrics(selectedQueries);

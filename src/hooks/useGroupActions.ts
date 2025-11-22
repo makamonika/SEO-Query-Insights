@@ -24,10 +24,7 @@ export interface UseGroupActionsResult {
  * @param params - Callbacks for refetching data and updating UI state
  * @returns Action handlers and loading states
  */
-export function useGroupActions({
-  refetch,
-  setEditingId,
-}: UseGroupActionsParams): UseGroupActionsResult {
+export function useGroupActions({ refetch, setEditingId }: UseGroupActionsParams): UseGroupActionsResult {
   const [isRenamingId, setIsRenamingId] = useState<string | null>(null);
   const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
