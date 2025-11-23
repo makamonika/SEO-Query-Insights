@@ -208,7 +208,7 @@ If the real data server is unavailable, you can use mock data for development:
 npm run dev
 ```
 
-The application will be available at `http://localhost:4321` (default Astro port).
+The application will be available at `http://localhost:3000`
 
 ## Available Scripts
 
@@ -247,20 +247,9 @@ The application will be available at `http://localhost:4321` (default Astro port
 
 ❌ Automatic daily imports or scheduled jobs  
 ❌ Historical trend analysis or time-based visualizations  
-❌ Detailed AI-generated content optimization suggestions  
 ❌ Notifications, reporting exports, or performance alerts  
 ❌ Role-based access control (beyond basic login)  
-
-### Technical Constraints
-
-- **Data Source**: JSON file accessed via internal API endpoint
-- **Data Classification**: Business-sensitive but not PII
-- **Authentication**: Simple login/password system for internal team use
 
 ## License
 
 License information not specified. Please contact the project maintainers for licensing details.
-
----
-
-**For Internal Use Only** - This tool is designed exclusively for use by the SEO team.
