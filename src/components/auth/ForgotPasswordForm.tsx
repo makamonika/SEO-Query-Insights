@@ -1,160 +1,75 @@
-import { useState, type FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CheckCircle2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/lib/validation/auth";
+import { useForgotPassword } from "@/lib/hooks/useAuth";
+import { SuccessMessage } from "./ForgotPasswordSuccessMessage";
 
 export function ForgotPasswordForm() {
-  const [email, setEmail] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState<{
-    email?: string;
-  }>({});
+  const form = useForm<ForgotPasswordFormData>({
+    resolver: zodResolver(forgotPasswordSchema),
+    mode: "onBlur",
+    defaultValues: {
+      email: "",
+    },
+  });
 
-  const validateEmail = (value: string): string | undefined => {
-    if (!value.trim()) {
-      return "Email is required";
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(value)) {
-      return "Please enter a valid email address";
-    }
-    return undefined;
-  };
+  const { mutate: forgotPassword, error, success } = useForgotPassword();
 
-  const handleEmailBlur = () => {
-    const error = validateEmail(email);
-    setFieldErrors({ email: error });
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(false);
-
-    // Validate email
-    const emailError = validateEmail(email);
-
-    if (emailError) {
-      setFieldErrors({ email: emailError });
-      return;
-    }
-
-    setIsLoading(true);
-
+  const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      const response = await fetch("/api/auth/forgot-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error?.message || "Failed to send reset email. Please try again.");
-      }
-
-      // Success - show success message
-      setSuccess(true);
-      setEmail(""); // Clear form
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
+      await forgotPassword(data);
+    } catch {
+      // Error is handled by the hook
     }
   };
 
   if (success) {
-    return (
-      <div className="space-y-4">
-        <Alert className="border-green-600/50 bg-green-50 dark:bg-green-950/20">
-          <CheckCircle2 className="size-4 text-green-600 dark:text-green-500" />
-          <AlertTitle className="text-green-900 dark:text-green-100">Check your email</AlertTitle>
-          <AlertDescription className="text-green-800 dark:text-green-200">
-            If an account exists for this email, you will receive password reset instructions.
-          </AlertDescription>
-        </Alert>
+    return <SuccessMessage />;
+  }
 
-        <div className="text-center space-y-2">
-          <p className="text-sm text-muted-foreground">Didn&apos;t receive the email? Check your spam folder.</p>
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setSuccess(false)}
-            className="text-primary hover:text-primary/90"
-          >
-            Try another email
-          </Button>
-        </div>
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        {error && (
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
 
-        <div className="pt-4 border-t">
+        <FormField
+          control={form.control}
+          name="email"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Email</FormLabel>
+              <FormControl>
+                <Input type="email" placeholder="Enter your email" autoComplete="email" {...field} />
+              </FormControl>
+              <FormDescription>
+                Enter your email address and we&apos;ll send you a link to reset your password.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? "Sending..." : "Send reset link"}
+        </Button>
+
+        <div className="text-center">
           <a
             href="/login"
-            className="text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded flex items-center justify-center"
+            className="text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
           >
             Back to login
           </a>
         </div>
-      </div>
-    );
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      {error && (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            if (fieldErrors.email) {
-              setFieldErrors({ email: undefined });
-            }
-          }}
-          onBlur={handleEmailBlur}
-          placeholder="Enter your email"
-          disabled={isLoading}
-          aria-invalid={!!fieldErrors.email}
-          aria-describedby={fieldErrors.email ? "email-error" : undefined}
-          autoComplete="email"
-        />
-        {fieldErrors.email && (
-          <p id="email-error" className="text-sm text-destructive" role="alert">
-            {fieldErrors.email}
-          </p>
-        )}
-        <p className="text-sm text-muted-foreground">
-          Enter your email address and we&apos;ll send you a link to reset your password.
-        </p>
-      </div>
-
-      <Button type="submit" className="w-full" disabled={isLoading}>
-        {isLoading ? "Sending..." : "Send reset link"}
-      </Button>
-
-      <div className="text-center">
-        <a
-          href="/login"
-          className="text-sm text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-        >
-          Back to login
-        </a>
-      </div>
-    </form>
+      </form>
+    </Form>
   );
 }
