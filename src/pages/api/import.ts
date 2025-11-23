@@ -34,7 +34,6 @@ export const prerender = false;
 export const POST: APIRoute = async ({ locals }) => {
   const startTime = Date.now();
 
-  // Step 2: Authentication
   let userId: string;
   try {
     userId = requireUser(locals).id;
@@ -46,14 +45,11 @@ export const POST: APIRoute = async ({ locals }) => {
   }
 
   try {
-    // Generate unique import ID for tracking
     const importId = crypto.randomUUID();
 
-    // Step 3: Build source URL from settings
     let sourceUrl: string;
     let useMockData: boolean;
     try {
-      // Access Cloudflare runtime environment variables
       const env = locals.runtime?.env || {};
       useMockData = env.USE_MOCK_IMPORT_DATA?.toLowerCase() === "true";
       sourceUrl = buildDailyImportUrl(env);
@@ -72,7 +68,6 @@ export const POST: APIRoute = async ({ locals }) => {
       });
     }
 
-    // Step 4: Log import_initiated action
     try {
       await locals.supabase.from("user_actions").insert({
         user_id: userId,
@@ -81,10 +76,8 @@ export const POST: APIRoute = async ({ locals }) => {
       });
     } catch (error) {
       console.error("[imports] Failed to log import_initiated action:", error);
-      // Don't fail the request if logging fails - continue with import
     }
 
-    // Step 5: Run import with timeout
     const result = await runImportWithTimeout(
       locals.supabase,
       userId,
@@ -94,8 +87,9 @@ export const POST: APIRoute = async ({ locals }) => {
       useMockData
     );
 
+    const durationMs = Date.now() - startTime;
+
     if (result.success) {
-      const durationMs = Date.now() - startTime;
       const response: ImportRunResultDto = {
         status: "completed",
         rowCount: result.rowCount,
@@ -108,7 +102,6 @@ export const POST: APIRoute = async ({ locals }) => {
         headers: { "Content-Type": "application/json" },
       });
     } else {
-      const durationMs = Date.now() - startTime;
       const errorResponse: ErrorResponse = {
         error: {
           code: "internal",
@@ -162,17 +155,14 @@ async function runImportWithTimeout(
   timeoutMs: number,
   useMockData: boolean
 ): Promise<ImportResult> {
-  // Create abort controller for timeout
   const abortController = new AbortController();
   const timeoutId = setTimeout(() => abortController.abort(), timeoutMs);
 
   try {
-    // Run the import service
     const result = await runImport(supabase, sourceUrl, abortController.signal, useMockData);
 
     clearTimeout(timeoutId);
 
-    // Log completion
     await logImportCompletion(supabase, userId, importId, result);
 
     return result;
@@ -188,7 +178,6 @@ async function runImportWithTimeout(
           : "Import failed with unexpected error",
     };
 
-    // Log failure
     await logImportCompletion(supabase, userId, importId, result);
 
     return result;
@@ -204,7 +193,6 @@ async function logImportCompletion(
   importId: string,
   result: ImportResult
 ): Promise<void> {
-  // Log errors to console
   if (!result.success && result.error) {
     console.error("[imports] Import failed:", result.error);
   }
@@ -222,6 +210,5 @@ async function logImportCompletion(
     });
   } catch (error) {
     console.error("[imports] Failed to log import_completed action:", error);
-    // Don't throw - logging failures shouldn't break the response
   }
 }

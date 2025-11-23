@@ -123,7 +123,13 @@ export async function updateGroup(
   patch: { name?: string; aiGenerated?: boolean }
 ): Promise<GroupDto | null> {
   const updates: Partial<GroupRow> = {};
-  if (patch.name !== undefined) updates.name = patch.name.trim();
+  if (patch.name !== undefined) {
+    const trimmedName = patch.name.trim();
+    if (trimmedName.length === 0) {
+      throw new Error("Group name cannot be empty");
+    }
+    updates.name = trimmedName;
+  }
   if (patch.aiGenerated !== undefined) updates.ai_generated = patch.aiGenerated;
 
   // Validate duplicate name if name is being changed
@@ -179,11 +185,14 @@ async function assertUniqueGroupName(
   name: string,
   excludeGroupId?: string
 ): Promise<void> {
+  // Normalize name for comparison (trim and lowercase)
+  const normalizedName = name.trim().toLowerCase();
+
   let query = supabase
     .from("groups")
     .select("id", { head: true, count: "exact" })
     .eq("user_id", userId)
-    .ilike("name", name);
+    .ilike("name", normalizedName);
   if (excludeGroupId) {
     query = query.neq("id", excludeGroupId);
   }

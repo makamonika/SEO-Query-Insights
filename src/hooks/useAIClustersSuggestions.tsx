@@ -86,7 +86,6 @@ function reducer(state: State, action: Action): State {
       return { ...state, liveMessage: action.payload };
 
     case "SET_CLUSTERS":
-      console.log("Reducer SET_CLUSTERS:", action.payload.length, "clusters");
       return { ...state, clusters: action.payload, selectedIds: new Set() };
 
     case "TOGGLE_SELECT": {
@@ -246,10 +245,8 @@ export function AIClustersProvider({ children }: AIClustersProviderProps) {
       const suggestions: AiClusterSuggestionDto[] = await response.json();
       console.log("Received suggestions:", suggestions.length, suggestions);
       const viewModels = suggestions.map(toViewModel);
-      console.log("View models created:", viewModels);
 
       dispatch({ type: "SET_CLUSTERS", payload: viewModels });
-      console.log("Dispatched SET_CLUSTERS");
 
       const successMsg = `Generated ${viewModels.length} cluster suggestion${viewModels.length !== 1 ? "s" : ""}`;
       toast.success("AI Clusters Generated", {

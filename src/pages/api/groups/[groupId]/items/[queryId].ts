@@ -22,7 +22,6 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     throw error;
   }
 
-  // Validate path params
   const parsedParams = deleteItemParamsSchema.safeParse({
     groupId: params.groupId,
     queryId: params.queryId,
@@ -42,7 +41,6 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     });
   }
 
-  // Remove item from group
   try {
     const result = await removeGroupItem(locals.supabase, userId, parsedParams.data.groupId, parsedParams.data.queryId);
 
@@ -61,7 +59,6 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
 
     return new Response(JSON.stringify(result), { status: 200, headers: { "Content-Type": "application/json" } });
   } catch (error) {
-    // Handle specific errors
     if (error instanceof GroupNotFoundError) {
       const errorResponse: ErrorResponse = {
         error: {
@@ -74,8 +71,6 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    // Handle unexpected errors
     console.error("[group-items][DELETE] Unexpected error:", error);
     const errorResponse: ErrorResponse = {
       error: {

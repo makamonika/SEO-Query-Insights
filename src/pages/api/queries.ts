@@ -43,11 +43,9 @@ export const GET: APIRoute = async ({ locals, url }) => {
     // Step 2: Build Supabase query with filters, sorting, and pagination
     const supabase = locals.supabase;
 
-    // Convert camelCase sortBy to snake_case for database column
     const dbSortColumn = params.sortBy === "avgPosition" ? "avg_position" : params.sortBy;
     const ascending = params.order === "asc";
 
-    // Build base query for data
     let query = supabase.from("queries").select(QUERIES_COLUMNS, { count: "exact" });
 
     // Step 3: Apply filters
@@ -58,12 +56,10 @@ export const GET: APIRoute = async ({ locals, url }) => {
       query = query.eq("is_opportunity", params.isOpportunity);
     }
 
-    // Apply sorting with deterministic secondary sort for stable pagination
     query = query.order(dbSortColumn, { ascending });
     query = query.order("date", { ascending: false });
     query = query.order("impressions", { ascending: false });
 
-    // Apply pagination
     query = query.range(params.offset, params.offset + params.limit - 1);
 
     // Step 4: Execute query

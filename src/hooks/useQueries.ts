@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { toast } from "sonner";
 import type { GetQueriesResponseDto, QueryDto, PaginationMeta, PaginationParams } from "@/types";
 
@@ -28,6 +28,7 @@ export function useQueries(params: UseQueriesParams): UseQueriesResult {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [refetchTrigger, setRefetchTrigger] = useState(0);
+  const hasLoadedRef = useRef<boolean>(false);
 
   const refetch = () => {
     setRefetchTrigger((prev) => prev + 1);
@@ -37,8 +38,7 @@ export function useQueries(params: UseQueriesParams): UseQueriesResult {
     let isCancelled = false;
 
     const fetchQueries = async () => {
-      // Only show loading on first load or when we don't have data
-      if (data.length === 0) {
+      if (!hasLoadedRef.current) {
         setIsLoading(true);
       }
       setError(null);
@@ -76,6 +76,7 @@ export function useQueries(params: UseQueriesParams): UseQueriesResult {
         if (!isCancelled) {
           setData(result.data);
           setMeta(result.meta);
+          hasLoadedRef.current = true;
         }
       } catch (err) {
         if (!isCancelled) {
@@ -97,16 +98,7 @@ export function useQueries(params: UseQueriesParams): UseQueriesResult {
     return () => {
       isCancelled = true;
     };
-  }, [
-    params.search,
-    params.isOpportunity,
-    params.sortBy,
-    params.order,
-    params.limit,
-    params.offset,
-    refetchTrigger,
-    data.length,
-  ]);
+  }, [params.search, params.isOpportunity, params.sortBy, params.order, params.limit, params.offset, refetchTrigger]);
 
   return { data, meta, isLoading, error, refetch };
 }

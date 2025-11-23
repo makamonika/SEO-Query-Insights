@@ -73,7 +73,6 @@ export const GET: APIRoute = async ({ params, locals, url }) => {
       headers: { "Content-Type": "application/json" },
     });
   } catch (error) {
-    // Handle specific errors
     if (error instanceof GroupNotFoundError) {
       const errorResponse: ErrorResponse = {
         error: {
@@ -86,8 +85,6 @@ export const GET: APIRoute = async ({ params, locals, url }) => {
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    // Handle unexpected errors
     console.error("[group-items][GET] Unexpected error:", error);
     const errorResponse: ErrorResponse = {
       error: {
@@ -121,7 +118,6 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     throw error;
   }
 
-  // Validate path params
   const parsedParams = pathParamsSchema.safeParse({ groupId: params.groupId });
   if (!parsedParams.success) {
     const errorResponse: ErrorResponse = {
@@ -137,7 +133,6 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     });
   }
 
-  // Parse request body
   let body: unknown;
   try {
     body = await request.json();
@@ -154,7 +149,6 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     });
   }
 
-  // Validate request body
   const parsedBody = addItemsBodySchema.safeParse(body);
   if (!parsedBody.success) {
     const errorResponse: ErrorResponse = {
@@ -170,16 +164,13 @@ export const POST: APIRoute = async ({ params, request, locals }) => {
     });
   }
 
-  // Add items to group
   try {
     const result = await addGroupItems(locals.supabase, userId, parsedParams.data.groupId, parsedBody.data.queryIds);
 
-    // Return 201 if items were added, 200 if all already existed
     const status = result.addedCount > 0 ? 201 : 200;
 
     return new Response(JSON.stringify(result), { status, headers: { "Content-Type": "application/json" } });
   } catch (error) {
-    // Handle specific errors
     if (error instanceof GroupNotFoundError) {
       const errorResponse: ErrorResponse = {
         error: {

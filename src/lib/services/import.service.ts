@@ -12,6 +12,9 @@ import type { TablesInsert } from "@/db/database.types";
 import { ImportConfig } from "@/lib/imports/config";
 import { calculateCtrDecimal, computeIsOpportunity } from "@/lib/metrics";
 
+// Constants
+const MAX_VALIDATION_ERROR_RATIO = 0.1; // 10% of records can fail validation before aborting
+
 /**
  * Raw GSC data record from import source
  * Represents metrics for a specific URL + query combination
@@ -211,15 +214,14 @@ export async function batchInsertRecords(
   for (let i = 0; i < records.length; i += batchSize) {
     const batch = records.slice(i, i + batchSize);
 
-    // Insert batch with upsert semantics
-    // Note: Supabase uses .upsert() for insert-or-update behavior
-    // For now, we'll use .insert() and handle conflicts client-side via deduplication
-    const { error } = await supabase.from("queries").insert(batch, { count: "exact" });
+    // Insert batch with upsert semantics to handle duplicates gracefully
+    // Using upsert to avoid conflicts on unique constraint (date, query_text, url)
+    const { error } = await supabase
+      .from("queries")
+      .upsert(batch, { onConflict: "date,query_text,url", count: "exact" });
 
     if (error) {
-      // Check if it's a unique constraint violation
-      // In production, you might want to use .upsert() instead
-      throw new Error(`Batch insert failed: ${error.message}`);
+      throw new Error(`Batch upsert failed: ${error.message}`);
     }
 
     totalInserted += batch.length;
@@ -269,8 +271,8 @@ export async function runImport(
         errors.push(`Record ${i}: ${errorMsg}`);
         console.log(`Validation error: ${errorMsg}`);
 
-        // Stop if too many errors (more than 10% of records)
-        if (errors.length > rawRecords.length * 0.1) {
+        // Stop if too many errors (more than threshold)
+        if (errors.length > rawRecords.length * MAX_VALIDATION_ERROR_RATIO) {
           throw new Error(`Too many validation errors: ${errors.length} errors in ${rawRecords.length} records`);
         }
       }

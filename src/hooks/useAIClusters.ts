@@ -30,9 +30,9 @@ export function useAIClusters({
     if (isGeneratingAI) return;
     setIsGeneratingAI(true);
 
-    // If we should navigate to the AI Clusters page, redirect first and let that page fetch once.
     if (navigateToAIClusters) {
       setLiveMessage("Opening AI clusters...");
+      setIsGeneratingAI(false);
       window.location.href = "/ai-clusters";
       return;
     }

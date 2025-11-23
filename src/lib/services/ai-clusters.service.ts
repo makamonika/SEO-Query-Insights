@@ -4,6 +4,7 @@ import type { AiClusterSuggestionDto, AcceptClusterDto, QueryDto, GroupDto } fro
 import { QUERIES_COLUMNS } from "@/lib/db/projections";
 import { calculateGroupMetricsFromQueries } from "@/lib/metrics";
 import { mapQueryRowToDto, mapGroupRowBase } from "@/lib/mappers";
+import { isValidUUID } from "@/lib/utils/validation";
 import { OpenRouterService, OpenRouterError } from "./openrouter.service";
 import type { JsonSchemaConfig } from "./openrouter.types";
 import { recomputeAndPersistGroupMetrics } from "./group-metrics.service";
@@ -22,6 +23,7 @@ import { OPENROUTER_API_KEY } from "astro:env/server";
 // ============================================================================
 
 const MAX_QUERIES_FOR_CLUSTERING = 500;
+const MIN_CLUSTER_SIZE = 3;
 
 // JSON Schema for OpenRouter response format
 const CLUSTER_RESPONSE_SCHEMA: JsonSchemaConfig = {
@@ -255,9 +257,6 @@ export async function generateClusters(
   // Step 4: Combine all clusters from all batches (no merging)
   const queryMap = new Map(queries.map((q) => [q.id, mapQueryRowToDto(q)]));
 
-  // UUID format validation regex (format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
   // Flatten all clusters from all batches and convert to DTOs
   const allClusters: AiClusterSuggestionDto[] = [];
   let invalidIdCount = 0;
@@ -265,9 +264,15 @@ export async function generateClusters(
 
   for (const batchResult of batchResults) {
     for (const cluster of batchResult.clusters) {
+      // Validate cluster name
+      if (!cluster.name || typeof cluster.name !== "string" || cluster.name.trim().length === 0) {
+        console.warn("Skipping cluster with invalid name");
+        continue;
+      }
+
       // Filter out invalid IDs (not UUID format)
       const validIds = cluster.queryIds.filter((id) => {
-        if (!uuidRegex.test(id)) {
+        if (!isValidUUID(id)) {
           invalidIdCount++;
           return false;
         }
@@ -284,7 +289,7 @@ export async function generateClusters(
         })
         .filter((q): q is QueryDto => q !== undefined);
 
-      if (clusterQueries.length >= 3) {
+      if (clusterQueries.length >= MIN_CLUSTER_SIZE) {
         const { metrics, queryCount } = calculateGroupMetricsFromQueries(clusterQueries);
 
         allClusters.push({
@@ -341,6 +346,21 @@ export async function acceptClusters(
   userId: string,
   clustersToAccept: AcceptClusterDto[]
 ): Promise<GroupDto[]> {
+  // Validate input
+  if (!Array.isArray(clustersToAccept) || clustersToAccept.length === 0) {
+    throw new Error("At least one cluster must be provided");
+  }
+
+  // Validate each cluster
+  for (const cluster of clustersToAccept) {
+    if (!cluster.name || typeof cluster.name !== "string" || cluster.name.trim().length === 0) {
+      throw new Error("Cluster name cannot be empty");
+    }
+    if (!Array.isArray(cluster.queryIds) || cluster.queryIds.length === 0) {
+      throw new Error("Each cluster must have at least one query ID");
+    }
+  }
+
   const createdGroups: GroupDto[] = [];
 
   // Step 1: Create groups and their items

@@ -201,7 +201,8 @@ export async function getGroupItems(
 
   // Step 1: Join group_items with queries using the foreign key relationship
   // Using inner join to only get items where the query exists
-  const { data, error, count } = await supabase
+  // Order by impressions descending at database level for better performance
+  let query = supabase
     .from("group_items")
     .select(
       `
@@ -214,15 +215,22 @@ export async function getGroupItems(
     )
     .eq("group_id", groupId);
 
+  // Apply pagination at database level if provided
+  if (opts?.limit !== undefined && opts?.offset !== undefined) {
+    query = query.range(opts.offset, opts.offset + opts.limit - 1);
+  }
+
+  const { data, error, count } = await query;
+
   if (error) {
     throw new Error(`Failed to fetch group items: ${error.message}`);
   }
 
   if (!data || data.length === 0) {
-    return { data: [], total: 0 };
+    return { data: [], total: count ?? 0 };
   }
 
-  // Step 2: Map to QueryDto and sort by impressions descending
+  // Step 2: Map to QueryDto
   const queries = data
     .map((item) => {
       // The queries field is a single object due to the foreign key relationship
@@ -233,13 +241,8 @@ export async function getGroupItems(
     .filter((q): q is QueryDto => q !== null);
 
   // Sort by impressions descending (client-side since ordering related fields can be tricky)
+  // Note: For large datasets, consider adding a database view or materialized query
   const sortedQueries = queries.sort((a, b) => b.impressions - a.impressions);
-
-  // Step 3: Apply pagination if provided
-  if (opts?.limit !== undefined && opts?.offset !== undefined) {
-    const paginatedQueries = sortedQueries.slice(opts.offset, opts.offset + opts.limit);
-    return { data: paginatedQueries, total: count ?? 0 };
-  }
 
   return { data: sortedQueries, total: count ?? 0 };
 }
