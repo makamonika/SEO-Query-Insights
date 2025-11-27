@@ -1,5 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect } from "react";
 import { AIClustersProvider, useAIClustersSuggestions } from "@/hooks/useAIClustersSuggestions";
+import { useClustersPageModals } from "@/hooks/useClustersPageModals";
 import { ClustersToolbar } from "./ClustersToolbar";
 import { ClustersList } from "./ClustersList";
 import { EditClusterModal } from "./EditClusterModal";
@@ -7,7 +8,6 @@ import { ConfirmDialog } from "@/components/groups/ConfirmDialog";
 import { LiveRegion } from "@/components/queries/LiveRegion";
 import { Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { QueryDto } from "@/types";
 
 /**
  * Inner page content that consumes the AI clusters context
@@ -19,6 +19,7 @@ function ClustersPageContent() {
     isGenerating,
     isAccepting,
     liveMessage,
+    hasValidSelection,
     generate,
     toggleSelect,
     selectAll,
@@ -29,9 +30,13 @@ function ClustersPageContent() {
     acceptSelected,
   } = useAIClustersSuggestions();
 
-  // Modal states
-  const [editingClusterId, setEditingClusterId] = useState<string | null>(null);
-  const [discardingClusterId, setDiscardingClusterId] = useState<string | null>(null);
+  // Modal management
+  const modals = useClustersPageModals({
+    clusters,
+    rename,
+    updateClusterQueries,
+    discard,
+  });
 
   // Auto-generate on mount if no clusters
   useEffect(() => {
@@ -39,46 +44,6 @@ function ClustersPageContent() {
       generate();
     }
   }, []);
-
-  // Validation: check if selected clusters are valid
-  const hasValidSelection = useMemo(() => {
-    if (selectedIds.size === 0) return false;
-
-    const selectedClusters = clusters.filter((c) => selectedIds.has(c.id));
-    return selectedClusters.every(
-      (c) => c.name.trim().length > 0 && c.name.trim().length <= 120 && c.queries.length > 0
-    );
-  }, [clusters, selectedIds]);
-
-  const handleOpenEdit = (id: string) => {
-    setEditingClusterId(id);
-  };
-
-  const handleCloseEdit = () => {
-    setEditingClusterId(null);
-  };
-
-  const handleSaveEdit = (changes: { name: string; queries: QueryDto[] }) => {
-    if (editingClusterId) {
-      rename(editingClusterId, changes.name);
-      updateClusterQueries(editingClusterId, changes.queries);
-    }
-    setEditingClusterId(null);
-  };
-
-  const handleOpenDiscard = (id: string) => {
-    setDiscardingClusterId(id);
-  };
-
-  const handleConfirmDiscard = () => {
-    if (discardingClusterId) {
-      discard(discardingClusterId);
-    }
-    setDiscardingClusterId(null);
-  };
-
-  const editingCluster = editingClusterId ? clusters.find((c) => c.id === editingClusterId) || null : null;
-  const discardingCluster = discardingClusterId ? clusters.find((c) => c.id === discardingClusterId) || null : null;
 
   // Generating state (first time)
   if (isGenerating && clusters.length === 0) {
@@ -151,32 +116,32 @@ function ClustersPageContent() {
         onToggleSelect={toggleSelect}
         onSelectAll={selectAll}
         onClearSelection={clearSelection}
-        onOpenEdit={handleOpenEdit}
-        onDiscard={handleOpenDiscard}
+        onOpenEdit={modals.handleOpenEdit}
+        onDiscard={modals.handleOpenDiscard}
         onRename={rename}
         onUpdateQueries={updateClusterQueries}
       />
 
       {/* Edit Modal */}
       <EditClusterModal
-        open={editingClusterId !== null}
-        cluster={editingCluster}
-        onClose={handleCloseEdit}
-        onSave={handleSaveEdit}
+        open={modals.editingClusterId !== null}
+        cluster={modals.editingCluster}
+        onClose={modals.handleCloseEdit}
+        onSave={modals.handleSaveEdit}
       />
 
       {/* Discard Confirmation */}
       <ConfirmDialog
-        open={discardingClusterId !== null}
+        open={modals.discardingClusterId !== null}
         title="Discard Cluster?"
         description={
-          discardingCluster
-            ? `Are you sure you want to discard "${discardingCluster.name}"? This action cannot be undone.`
+          modals.discardingCluster
+            ? `Are you sure you want to discard "${modals.discardingCluster.name}"? This action cannot be undone.`
             : undefined
         }
         confirmLabel="Discard"
-        onConfirm={handleConfirmDiscard}
-        onOpenChange={(open) => !open && setDiscardingClusterId(null)}
+        onConfirm={modals.handleConfirmDiscard}
+        onOpenChange={(open) => !open && modals.handleCloseDiscard()}
       />
 
       {/* Live Region for screen readers */}

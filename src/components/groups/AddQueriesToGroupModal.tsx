@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { QueriesTable } from "@/components/queries/QueriesTable";
 import { SearchInput } from "@/components/queries/SearchInput";
 import { OpportunityToggle } from "@/components/queries/OpportunityToggle";
-import { useQueries } from "@/hooks/useQueries";
-import { useSelection } from "@/hooks/useSelection";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import type { QuerySortField, SortOrder } from "@/types";
+import { useQuerySearch } from "@/hooks/useQuerySearch";
 
 interface AddQueriesToGroupModalProps {
   open: boolean;
@@ -39,64 +36,30 @@ export function AddQueriesToGroupModal({
   existingQueryIds,
   groupName,
 }: AddQueriesToGroupModalProps) {
-  // Search and filter state
-  const [search, setSearch] = useState("");
-  const [isOpportunity, setIsOpportunity] = useState<boolean>();
-
-  // Sorting state
-  const [sortBy, setSortBy] = useState<QuerySortField>("impressions");
-  const [order, setOrder] = useState<SortOrder>("desc");
-
-  // Debounce search term to avoid too many API calls
-  const debouncedSearch = useDebouncedValue(search, 300);
-
-  // Selection management
-  const { selected, toggleRow, clearSelection } = useSelection();
-
-  // Fetch queries with search filter
-  const { data: queries, isLoading } = useQueries({
-    search: debouncedSearch,
-    isOpportunity,
-    sortBy,
-    order,
+  // Use extracted query search hook
+  const querySearch = useQuerySearch({
+    excludeIds: existingQueryIds,
     limit: 100,
-    offset: 0,
+    initialSortBy: "impressions",
+    initialOrder: "desc",
   });
-
-  // Filter out queries that are already in the group
-  const availableQueries = useMemo(() => {
-    return queries.filter((query) => !existingQueryIds.has(query.id));
-  }, [queries, existingQueryIds]);
 
   // Reset form when modal opens
   useEffect(() => {
     if (open) {
-      setSearch("");
-      setIsOpportunity(undefined);
-      setSortBy("impressions");
-      setOrder("desc");
-      clearSelection();
+      querySearch.reset();
     }
-  }, [open, clearSelection]);
-
-  // Handle sort change
-  const handleSortChange = useCallback(
-    ({ sortBy: newSortBy, order: newOrder }: { sortBy: QuerySortField; order: SortOrder }) => {
-      setSortBy(newSortBy);
-      setOrder(newOrder);
-    },
-    []
-  );
+  }, [open, querySearch.reset]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (selected.size === 0) {
+    if (querySearch.selected.size === 0) {
       return;
     }
 
     try {
-      await onAdd(Array.from(selected));
+      await onAdd(Array.from(querySearch.selected));
       // Close modal on success (parent will handle this via onOpenChange)
     } catch {
       // Error handling is done in parent component
@@ -115,18 +78,22 @@ export function AddQueriesToGroupModal({
         <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0">
           {/* Search and Filter Controls */}
           <div className="flex gap-4 items-center px-6 pb-4">
-            <SearchInput value={search} onChange={setSearch} placeholder="Search by query text..." />
+            <SearchInput
+              value={querySearch.search}
+              onChange={querySearch.setSearch}
+              placeholder="Search by query text..."
+            />
             <OpportunityToggle
-              checked={isOpportunity || false}
-              onChange={(checked: boolean) => setIsOpportunity(checked ? true : undefined)}
+              checked={querySearch.isOpportunity || false}
+              onChange={(checked: boolean) => querySearch.setIsOpportunity(checked ? true : undefined)}
             />
           </div>
 
           {/* Selection Summary */}
-          {selected.size > 0 && (
+          {querySearch.selected.size > 0 && (
             <div className="flex items-center gap-2 px-6 pb-4">
               <Badge variant="secondary">
-                {selected.size} {selected.size === 1 ? "query" : "queries"} selected
+                {querySearch.selected.size} {querySearch.selected.size === 1 ? "query" : "queries"} selected
               </Badge>
             </div>
           )}
@@ -134,16 +101,18 @@ export function AddQueriesToGroupModal({
           {/* Queries Table - Scrollable container */}
           <div className="flex-1 min-h-0 px-6">
             <QueriesTable
-              rows={availableQueries}
-              isLoading={isLoading}
+              rows={querySearch.availableQueries}
+              isLoading={querySearch.isLoading}
               emptyMessage={
-                search || isOpportunity ? "No matching queries found" : "All queries are already in this group"
+                querySearch.search || querySearch.isOpportunity
+                  ? "No matching queries found"
+                  : "All queries are already in this group"
               }
-              selected={selected}
-              onToggleRow={toggleRow}
-              sortBy={sortBy}
-              order={order}
-              onSortChange={handleSortChange}
+              selected={querySearch.selected}
+              onToggleRow={querySearch.toggleRow}
+              sortBy={querySearch.sortBy}
+              order={querySearch.order}
+              onSortChange={querySearch.handleSortChange}
               maxHeight="400px"
             />
           </div>
@@ -152,8 +121,10 @@ export function AddQueriesToGroupModal({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || selected.size === 0}>
-              {isSubmitting ? "Adding..." : `Add ${selected.size || ""} ${selected.size === 1 ? "Query" : "Queries"}`}
+            <Button type="submit" disabled={isSubmitting || querySearch.selected.size === 0}>
+              {isSubmitting
+                ? "Adding..."
+                : `Add ${querySearch.selected.size || ""} ${querySearch.selected.size === 1 ? "Query" : "Queries"}`}
             </Button>
           </DialogFooter>
         </form>

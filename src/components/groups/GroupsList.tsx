@@ -1,7 +1,8 @@
-import { useState, memo } from "react";
+import { memo } from "react";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TableEmptyState } from "@/components/ui/table-empty-state";
 import { getSortIcon, getNextSortState } from "@/lib/table-utils.tsx";
+import { useGroupRowState } from "@/hooks/useGroupRowState";
 import { GroupCard } from "./GroupCard";
 import { GroupTableRow } from "./GroupTableRow";
 import type { GroupDto, SortOrder } from "@/types";
@@ -34,44 +35,13 @@ export const GroupsList = memo(function GroupsList({
   isRenamingId,
   isDeletingId,
 }: GroupsListProps) {
-  // Local state for inline editing
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  // Extract row state management to custom hook
+  const rowState = useGroupRowState();
 
   const handleColumnHeaderClick = (field: GroupSortField) => {
     const defaultOrder = field === "createdAt" ? "desc" : "asc";
     const nextState = getNextSortState(sortBy, order, field, defaultOrder);
     onSortChange(nextState);
-  };
-
-  const handleEditStart = (group: GroupDto) => {
-    setEditingId(group.id);
-    setEditingName(group.name);
-  };
-
-  const handleEditCancel = () => {
-    setEditingId(null);
-    setEditingName("");
-  };
-
-  const handleEditSave = async (id: string) => {
-    await onRename(id, editingName);
-    setEditingId(null);
-    setEditingName("");
-  };
-
-  const handleDeleteClick = (id: string) => {
-    setDeleteConfirmId(id);
-  };
-
-  const handleDeleteConfirm = async (id: string) => {
-    await onDelete(id);
-    setDeleteConfirmId(null);
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteConfirmId(null);
   };
 
   return (
@@ -131,27 +101,27 @@ export const GroupsList = memo(function GroupsList({
               </TableHeader>
               <TableBody>
                 {rows.map((group) => {
-                  const isEditing = editingId === group.id;
+                  const isEditing = rowState.isEditing(group.id);
                   const isRenaming = isRenamingId === group.id;
                   const isDeleting = isDeletingId === group.id;
-                  const isDeleteConfirm = deleteConfirmId === group.id;
+                  const isDeleteConfirm = rowState.isDeleteConfirm(group.id);
 
                   return (
                     <GroupTableRow
                       key={group.id}
                       group={group}
                       isEditing={isEditing}
-                      editingName={editingName}
-                      onEditingNameChange={setEditingName}
-                      onEditStart={() => handleEditStart(group)}
-                      onEditSave={() => handleEditSave(group.id)}
-                      onEditCancel={handleEditCancel}
+                      editingName={rowState.editingName}
+                      onEditingNameChange={rowState.updateEditingName}
+                      onEditStart={() => rowState.startEdit(group)}
+                      onEditSave={() => rowState.saveEdit(group.id, onRename)}
+                      onEditCancel={rowState.cancelEdit}
                       isRenaming={isRenaming}
                       isDeleting={isDeleting}
                       isDeleteConfirm={isDeleteConfirm}
-                      onDeleteClick={() => handleDeleteClick(group.id)}
-                      onDeleteConfirm={() => handleDeleteConfirm(group.id)}
-                      onDeleteCancel={handleDeleteCancel}
+                      onDeleteClick={() => rowState.showDeleteConfirm(group.id)}
+                      onDeleteConfirm={() => rowState.confirmDelete(group.id, onDelete)}
+                      onDeleteCancel={rowState.cancelDelete}
                       onView={() => onView(group.id)}
                     />
                   );
@@ -163,27 +133,27 @@ export const GroupsList = memo(function GroupsList({
           {/* Mobile Card Layout */}
           <div className="md:hidden">
             {rows.map((group) => {
-              const isEditing = editingId === group.id;
+              const isEditing = rowState.isEditing(group.id);
               const isRenaming = isRenamingId === group.id;
               const isDeleting = isDeletingId === group.id;
-              const isDeleteConfirm = deleteConfirmId === group.id;
+              const isDeleteConfirm = rowState.isDeleteConfirm(group.id);
 
               return (
                 <GroupCard
                   key={group.id}
                   group={group}
                   isEditing={isEditing}
-                  editingName={editingName}
-                  onEditingNameChange={setEditingName}
-                  onEditStart={() => handleEditStart(group)}
-                  onEditSave={() => handleEditSave(group.id)}
-                  onEditCancel={handleEditCancel}
+                  editingName={rowState.editingName}
+                  onEditingNameChange={rowState.updateEditingName}
+                  onEditStart={() => rowState.startEdit(group)}
+                  onEditSave={() => rowState.saveEdit(group.id, onRename)}
+                  onEditCancel={rowState.cancelEdit}
                   isRenaming={isRenaming}
                   isDeleting={isDeleting}
                   isDeleteConfirm={isDeleteConfirm}
-                  onDeleteClick={() => handleDeleteClick(group.id)}
-                  onDeleteConfirm={() => handleDeleteConfirm(group.id)}
-                  onDeleteCancel={handleDeleteCancel}
+                  onDeleteClick={() => rowState.showDeleteConfirm(group.id)}
+                  onDeleteConfirm={() => rowState.confirmDelete(group.id, onDelete)}
+                  onDeleteCancel={rowState.cancelDelete}
                   onView={() => onView(group.id)}
                 />
               );

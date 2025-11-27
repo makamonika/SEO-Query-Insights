@@ -1,7 +1,8 @@
-import { useState, useMemo, useCallback } from "react";
-import { useGroup } from "@/hooks/useGroups";
-import { useGroupItems, useRemoveGroupItem, useAddGroupItems } from "@/hooks/useGroupItems";
-import { useGroupActions } from "@/hooks/useGroupActions";
+import { useMemo } from "react";
+import { useGroupDetails } from "@/hooks/useGroupDetails";
+import { useTableState } from "@/hooks/useTableState";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useModalState } from "@/hooks/useModalState";
 import { EditableHeader } from "./EditableHeader";
 import { MetricsSummary } from "./MetricsSummary";
 import { QueriesTable } from "@/components/queries/QueriesTable";
@@ -11,7 +12,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, Trash2Icon, PlusIcon } from "lucide-react";
 import { sortQueries } from "@/lib/query-sorting";
-import type { QuerySortField, SortOrder } from "@/types";
+import type { QuerySortField } from "@/types";
 
 export interface GroupDetailsPageProps {
   groupId: string;
@@ -22,87 +23,46 @@ export interface GroupDetailsPageProps {
  * Displays group header, metrics, and member queries with edit/delete capabilities
  */
 export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
-  const [confirmDialog, setConfirmDialog] = useState<{
-    open: boolean;
-    type: "delete-group" | "remove-query";
-    queryId?: string;
-    queryText?: string;
-  }>({ open: false, type: "delete-group" });
-  const [addQueriesModalOpen, setAddQueriesModalOpen] = useState(false);
+  // Table state (pagination + sorting)
+  const { pageSize, offset, handlePageChange, handlePageSizeChange, sortBy, order, handleSortChange } =
+    useTableState<QuerySortField>("impressions", "desc", 50);
 
-  // Sorting state for member queries table
-  const [sortBy, setSortBy] = useState<QuerySortField>("impressions");
-  const [order, setOrder] = useState<SortOrder>("desc");
+  // Confirmation dialog state
+  const confirmDialog = useConfirmDialog<{ queryId?: string; queryText?: string }>();
 
-  // Pagination state
-  const [pageSize, setPageSize] = useState(50);
-  const [currentPage, setCurrentPage] = useState(1);
+  // Add queries modal state
+  const addQueriesModal = useModalState();
 
-  // Calculate offset from current page
-  const offset = (currentPage - 1) * pageSize;
-
-  // Fetch group data
-  const { data: group, isLoading: isLoadingGroup, error: groupError, refetch: refetchGroup } = useGroup(groupId);
-
-  // Fetch member queries
+  // Group details (combines group + members data and actions)
   const {
-    data: members,
-    meta,
-    isLoading: isLoadingMembers,
-    refetch: refetchMembers,
-  } = useGroupItems(groupId, {
+    group,
+    isLoadingGroup,
+    groupError,
+    members,
+    membersMeta: meta,
+    isLoadingMembers,
+    isRenamingId,
+    isDeletingId,
+    removingQueryId,
+    isAddingItems,
+    renameGroup,
+    removeQuery,
+    addQueries,
+    handleDelete,
+  } = useGroupDetails({
+    groupId,
     limit: pageSize,
     offset,
   });
-
-  // Group actions (rename, delete)
-  const { isRenamingId, isDeletingId, handleRename, handleDelete } = useGroupActions({
-    refetch: refetchGroup,
-  });
-
-  // Remove query from group
-  const { removeItem, removingQueryId } = useRemoveGroupItem();
-
-  // Add queries to group
-  const { addItems, isLoading: isAddingItems } = useAddGroupItems();
 
   // Sort members client-side using shared sorting logic
   const sortedMembers = useMemo(() => {
     return sortQueries(members, sortBy, order);
   }, [members, sortBy, order]);
 
-  // Handle sort change
-  const handleSortChange = useCallback(
-    ({ sortBy: newSortBy, order: newOrder }: { sortBy: QuerySortField; order: SortOrder }) => {
-      setSortBy(newSortBy);
-      setOrder(newOrder);
-      setCurrentPage(1); // Reset to first page on sort change
-    },
-    []
-  );
-
-  // Pagination handlers - now receive offset values from Pagination component
-  const handlePageChange = useCallback(
-    (newOffset: number) => {
-      setCurrentPage(Math.floor(newOffset / pageSize) + 1);
-    },
-    [pageSize]
-  );
-
-  const handlePageSizeChange = useCallback((newLimit: number) => {
-    setPageSize(newLimit);
-    setCurrentPage(1); // Reset to first page when page size changes
-  }, []);
-
-  // Handle rename
-  const handleRenameGroup = async (name: string) => {
-    await handleRename(groupId, name);
-    refetchGroup();
-  };
-
   // Handle delete group - show confirmation first
   const handleDeleteGroup = () => {
-    setConfirmDialog({ open: true, type: "delete-group" });
+    confirmDialog.openDialog("delete-group");
   };
 
   // Confirm delete group
@@ -113,19 +73,16 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
   };
 
   // Handle remove query - show confirmation first
-  const handleRemoveQuery = (queryId: string, queryText: string) => {
-    setConfirmDialog({ open: true, type: "remove-query", queryId, queryText });
+  const handleRemoveQueryClick = (queryId: string, queryText: string) => {
+    confirmDialog.openDialog("remove-query", { queryId, queryText });
   };
 
   // Confirm remove query
   const confirmRemoveQuery = async () => {
-    if (!confirmDialog.queryId || !confirmDialog.queryText) return;
+    if (!confirmDialog.data?.queryId) return;
 
     try {
-      await removeItem(groupId, confirmDialog.queryId);
-      // Refresh both members list and group metrics
-      refetchMembers();
-      refetchGroup();
+      await removeQuery(confirmDialog.data.queryId);
     } catch {
       // Error already handled by hook with toast
     }
@@ -134,11 +91,8 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
   // Handle add queries
   const handleAddQueries = async (queryIds: string[]) => {
     try {
-      await addItems(groupId, queryIds);
-      // Refresh both members list and group metrics
-      refetchMembers();
-      refetchGroup();
-      setAddQueriesModalOpen(false);
+      await addQueries(queryIds);
+      addQueriesModal.close();
     } catch {
       // Error already handled by hook with toast
     }
@@ -215,7 +169,7 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
           aiGenerated={group.aiGenerated}
           isSaving={!!isRenamingId}
           isDeleting={!!isDeletingId}
-          onRename={handleRenameGroup}
+          onRename={renameGroup}
           onDelete={handleDeleteGroup}
         />
 
@@ -232,7 +186,7 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-semibold">Member Queries ({meta.total})</h2>
-            <Button onClick={() => setAddQueriesModalOpen(true)} disabled={isAddingItems}>
+            <Button onClick={() => addQueriesModal.open()} disabled={isAddingItems}>
               <PlusIcon />
               Add Queries
             </Button>
@@ -248,7 +202,7 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
               <Button
                 size="icon"
                 variant="ghost"
-                onClick={() => handleRemoveQuery(row.id, row.queryText)}
+                onClick={() => handleRemoveQueryClick(row.id, row.queryText)}
                 disabled={removingQueryId === row.id}
                 aria-label={`Remove ${row.queryText} from group`}
                 className="text-destructive hover:text-destructive hover:bg-destructive/10"
@@ -279,23 +233,23 @@ export function GroupDetailsPage({ groupId }: GroupDetailsPageProps) {
         confirmLabel="Delete"
         variant="destructive"
         onConfirm={confirmDeleteGroup}
-        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        onOpenChange={confirmDialog.closeDialog}
       />
 
       <ConfirmDialog
         open={confirmDialog.open && confirmDialog.type === "remove-query"}
         title="Remove Query from Group"
-        description={`Are you sure you want to remove "${confirmDialog.queryText}" from this group? The query itself will not be deleted.`}
+        description={`Are you sure you want to remove "${confirmDialog.data?.queryText}" from this group? The query itself will not be deleted.`}
         confirmLabel="Remove"
         variant="destructive"
         onConfirm={confirmRemoveQuery}
-        onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}
+        onOpenChange={confirmDialog.closeDialog}
       />
 
       {/* Add Queries Modal */}
       <AddQueriesToGroupModal
-        open={addQueriesModalOpen}
-        onOpenChange={setAddQueriesModalOpen}
+        open={addQueriesModal.isOpen}
+        onOpenChange={(open) => (open ? addQueriesModal.open() : addQueriesModal.close())}
         onAdd={handleAddQueries}
         isSubmitting={isAddingItems}
         existingQueryIds={existingQueryIds}

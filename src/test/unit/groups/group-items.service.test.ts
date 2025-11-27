@@ -91,7 +91,23 @@ describe("Group Items Service", () => {
         thenResponses: [{ error: null }],
       });
 
-      enqueueFromBuilders(groupOwnership, queryExistence, existingItems, insertItems, userActionInsert);
+      const metricsGroupItemsSelect = createPostgrestQueryBuilderMock({
+        thenResponses: [{ data: [], error: null }],
+      });
+
+      const metricsGroupUpdate = createPostgrestQueryBuilderMock({
+        thenResponses: [{ error: null }],
+      });
+
+      enqueueFromBuilders(
+        groupOwnership,
+        queryExistence,
+        existingItems,
+        insertItems,
+        userActionInsert,
+        metricsGroupItemsSelect,
+        metricsGroupUpdate
+      );
 
       // Act
       const result = await addGroupItems(mockSupabase, userId, groupId, queryIds);
@@ -125,7 +141,23 @@ describe("Group Items Service", () => {
         thenResponses: [{ error: null }],
       });
 
-      enqueueFromBuilders(groupOwnership, queryExistence, existingItems, insertItems, userActionInsert);
+      const metricsGroupItemsSelect = createPostgrestQueryBuilderMock({
+        thenResponses: [{ data: [], error: null }],
+      });
+
+      const metricsGroupUpdate = createPostgrestQueryBuilderMock({
+        thenResponses: [{ error: null }],
+      });
+
+      enqueueFromBuilders(
+        groupOwnership,
+        queryExistence,
+        existingItems,
+        insertItems,
+        userActionInsert,
+        metricsGroupItemsSelect,
+        metricsGroupUpdate
+      );
 
       // Act
       const result = await addGroupItems(mockSupabase, userId, groupId, queryIds);
@@ -155,7 +187,23 @@ describe("Group Items Service", () => {
         thenResponses: [{ error: null }],
       });
 
-      enqueueFromBuilders(groupOwnership, queryExistence, existingItems, insertItems, userActionInsert);
+      const metricsGroupItemsSelect = createPostgrestQueryBuilderMock({
+        thenResponses: [{ data: [], error: null }],
+      });
+
+      const metricsGroupUpdate = createPostgrestQueryBuilderMock({
+        thenResponses: [{ error: null }],
+      });
+
+      enqueueFromBuilders(
+        groupOwnership,
+        queryExistence,
+        existingItems,
+        insertItems,
+        userActionInsert,
+        metricsGroupItemsSelect,
+        metricsGroupUpdate
+      );
 
       // Act
       const result = await addGroupItems(mockSupabase, userId, groupId, queryIds);
@@ -200,7 +248,23 @@ describe("Group Items Service", () => {
         thenResponses: [{ error: null }],
       });
 
-      enqueueFromBuilders(groupOwnership, queryExistence, existingItems, insertItems, userActionInsert);
+      const metricsGroupItemsSelect = createPostgrestQueryBuilderMock({
+        thenResponses: [{ data: [], error: null }],
+      });
+
+      const metricsGroupUpdate = createPostgrestQueryBuilderMock({
+        thenResponses: [{ error: null }],
+      });
+
+      enqueueFromBuilders(
+        groupOwnership,
+        queryExistence,
+        existingItems,
+        insertItems,
+        userActionInsert,
+        metricsGroupItemsSelect,
+        metricsGroupUpdate
+      );
 
       // Act
       const result = await addGroupItems(mockSupabase, userId, groupId, queryIds);
@@ -306,7 +370,15 @@ describe("Group Items Service", () => {
         thenResponses: [{ error: null }],
       });
 
-      enqueueFromBuilders(groupOwnership, deleteQuery, userActionInsert);
+      const metricsGroupItemsSelect = createPostgrestQueryBuilderMock({
+        thenResponses: [{ data: [], error: null }],
+      });
+
+      const metricsGroupUpdate = createPostgrestQueryBuilderMock({
+        thenResponses: [{ error: null }],
+      });
+
+      enqueueFromBuilders(groupOwnership, deleteQuery, userActionInsert, metricsGroupItemsSelect, metricsGroupUpdate);
 
       // Act
       const result = await removeGroupItem(mockSupabase, userId, groupId, queryId);
@@ -501,22 +573,9 @@ describe("Group Items Service", () => {
 
     it("should apply pagination when provided", async () => {
       // Arrange
+      // Mock should return only the paginated slice (offset: 1, limit: 2)
+      // This simulates what the database would return after applying .range(1, 2)
       const mockData = [
-        {
-          query_id: "query-1",
-          queries: {
-            id: "query-1",
-            query_text: "test query 1",
-            url: "https://example.com",
-            impressions: 3000,
-            clicks: 150,
-            ctr: 0.05,
-            avg_position: 2.5,
-            is_opportunity: false,
-            date: "2024-01-01",
-            created_at: "2024-01-01T00:00:00Z",
-          },
-        },
         {
           query_id: "query-2",
           queries: {

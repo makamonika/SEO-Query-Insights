@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,12 +14,10 @@ import { Badge } from "@/components/ui/badge";
 import { QueriesTable } from "@/components/queries/QueriesTable";
 import { SearchInput } from "@/components/queries/SearchInput";
 import { OpportunityToggle } from "@/components/queries/OpportunityToggle";
-import { useQueries } from "@/hooks/useQueries";
-import { useSelection } from "@/hooks/useSelection";
-import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { useQuerySearch } from "@/hooks/useQuerySearch";
 import { Trash2Icon } from "lucide-react";
 import type { AIClusterViewModel } from "@/hooks/useAIClustersSuggestions";
-import type { QuerySortField, SortOrder, QueryDto } from "@/types";
+import type { QueryDto } from "@/types";
 
 export interface EditClusterModalProps {
   open: boolean;
@@ -30,7 +28,7 @@ export interface EditClusterModalProps {
 
 /**
  * Modal for editing cluster name and membership
- * Reuses AddQueriesToGroupModal pattern but adapted for clusters
+ * Uses useQuerySearch hook to eliminate duplicated search/filter/sort logic
  */
 export function EditClusterModal({ open, cluster, onClose, onSave }: EditClusterModalProps) {
   // Name editing state
@@ -39,37 +37,17 @@ export function EditClusterModal({ open, cluster, onClose, onSave }: EditCluster
 
   const [memberQueries, setMemberQueries] = useState<QueryDto[]>([]);
 
-  // Search and filter state for adding queries
-  const [search, setSearch] = useState("");
-  const [isOpportunity, setIsOpportunity] = useState<boolean>();
-
-  // Sorting state
-  const [sortBy, setSortBy] = useState<QuerySortField>("impressions");
-  const [order, setOrder] = useState<SortOrder>("desc");
-
-  // Debounce search term
-  const debouncedSearch = useDebouncedValue(search, 300);
-
-  // Selection for adding new queries
-  const { selected, toggleRow, clearSelection } = useSelection();
-
-  // Fetch all queries for search/add
-  const { data: queries, isLoading } = useQueries({
-    search: debouncedSearch,
-    isOpportunity,
-    sortBy,
-    order,
-    limit: 100,
-    offset: 0,
-  });
-
   // Derive member IDs from member queries
   const memberIds = useMemo(() => new Set(memberQueries.map((q) => q.id)), [memberQueries]);
 
-  // Filter out queries that are already members
-  const availableQueries = useMemo(() => {
-    return queries.filter((query) => !memberIds.has(query.id));
-  }, [queries, memberIds]);
+  // Use the extracted query search hook with member IDs as exclusion
+  const querySearch = useQuerySearch({
+    excludeIds: memberIds,
+    limit: 100,
+    initialSortBy: "impressions",
+    initialOrder: "desc",
+    resetTrigger: open,
+  });
 
   // Initialize form when cluster changes
   useEffect(() => {
@@ -77,28 +55,15 @@ export function EditClusterModal({ open, cluster, onClose, onSave }: EditCluster
       setName(cluster.name);
       setMemberQueries(cluster.queries);
       setNameError(null);
-      setSearch("");
-      setIsOpportunity(undefined);
-      setSortBy("impressions");
-      setOrder("desc");
-      clearSelection();
     }
-  }, [cluster, open, clearSelection]);
-
-  const handleSortChange = useCallback(
-    ({ sortBy: newSortBy, order: newOrder }: { sortBy: QuerySortField; order: SortOrder }) => {
-      setSortBy(newSortBy);
-      setOrder(newOrder);
-    },
-    []
-  );
+  }, [cluster, open]);
 
   const handleAddSelected = () => {
-    if (selected.size > 0) {
+    if (querySearch.selected.size > 0) {
       // Add query objects to memberQueries
-      const newQueries = queries.filter((q) => selected.has(q.id));
+      const newQueries = querySearch.queries.filter((q) => querySearch.selected.has(q.id));
       setMemberQueries((prev) => [...prev, ...newQueries]);
-      clearSelection();
+      querySearch.clearSelection();
     }
   };
 
@@ -212,18 +177,22 @@ export function EditClusterModal({ open, cluster, onClose, onSave }: EditCluster
 
               {/* Search and Filter Controls */}
               <div className="flex gap-4 items-center mb-4">
-                <SearchInput value={search} onChange={setSearch} placeholder="Search queries to add..." />
+                <SearchInput
+                  value={querySearch.search}
+                  onChange={querySearch.setSearch}
+                  placeholder="Search queries to add..."
+                />
                 <OpportunityToggle
-                  checked={isOpportunity || false}
-                  onChange={(checked: boolean) => setIsOpportunity(checked ? true : undefined)}
+                  checked={querySearch.isOpportunity || false}
+                  onChange={(checked: boolean) => querySearch.setIsOpportunity(checked ? true : undefined)}
                 />
               </div>
 
               {/* Selection Summary */}
-              {selected.size > 0 && (
+              {querySearch.selected.size > 0 && (
                 <div className="flex items-center justify-between gap-2 mb-4">
                   <Badge variant="secondary">
-                    {selected.size} {selected.size === 1 ? "query" : "queries"} selected
+                    {querySearch.selected.size} {querySearch.selected.size === 1 ? "query" : "queries"} selected
                   </Badge>
                   <Button type="button" size="sm" onClick={handleAddSelected}>
                     Add Selected
@@ -234,18 +203,18 @@ export function EditClusterModal({ open, cluster, onClose, onSave }: EditCluster
               {/* Available Queries Table */}
               <div className="mb-4">
                 <QueriesTable
-                  rows={availableQueries}
-                  isLoading={isLoading}
+                  rows={querySearch.availableQueries}
+                  isLoading={querySearch.isLoading}
                   emptyMessage={
-                    search || isOpportunity
+                    querySearch.search || querySearch.isOpportunity
                       ? "No matching queries found"
                       : "All queries are already in this cluster or no queries available"
                   }
-                  selected={selected}
-                  onToggleRow={toggleRow}
-                  sortBy={sortBy}
-                  order={order}
-                  onSortChange={handleSortChange}
+                  selected={querySearch.selected}
+                  onToggleRow={querySearch.toggleRow}
+                  sortBy={querySearch.sortBy}
+                  order={querySearch.order}
+                  onSortChange={querySearch.handleSortChange}
                   maxHeight="400px"
                 />
               </div>
