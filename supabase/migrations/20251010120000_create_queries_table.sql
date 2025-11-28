@@ -3,7 +3,7 @@
 -- affected tables: queries
 -- special considerations: 
 --   - is_opportunity flag computed at import time based on prd criteria
---   - query text normalization uses lower() for case-insensitive uniqueness
+--   - query text is normalized to lowercase by application before insertion
 --   - historical data retained by date; dashboard typically shows latest date only
 
 -- enable pg_trgm extension for trigram-based text search
@@ -23,9 +23,10 @@ create table queries (
   created_at timestamptz not null default now()
 );
 
--- add unique constraint for date, query_text (case-insensitive), and url
+-- add unique constraint for date, query_text, and url
 -- this prevents duplicate entries for the same query on the same date and url
-create unique index idx_queries_unique_date_query_url on queries(date, lower(query_text), url);
+-- note: query_text is already normalized to lowercase by the application (see import.service.ts)
+create unique index idx_queries_unique_date_query_url on queries(date, query_text, url);
 
 -- performance index for date filtering and sorting (descending for latest first)
 create index idx_queries_date on queries(date desc);
@@ -64,6 +65,14 @@ on queries for insert
 to authenticated 
 with check (true);
 
+-- rls policy: authenticated users can update queries (for upsert during import)
+-- rationale: when re-importing data, upsert needs to update existing records
+create policy "queries_update_authenticated" 
+on queries for update 
+to authenticated 
+using (true)
+with check (true);
+
 -- rls policy: service role can delete queries (for test cleanup and admin operations)
 -- rationale: e2e tests need to clean up test data, and admin operations may require deletions
 create policy "queries_delete_service_role" 
@@ -71,5 +80,6 @@ on queries for delete
 to service_role
 using (true);
 
--- note: no update or delete policies for regular authenticated users to ensure data immutability
+-- note: update policy allows upsert operations during re-import of existing data
+-- note: no delete policies for regular authenticated users to ensure data immutability
 

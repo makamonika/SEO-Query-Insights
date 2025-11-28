@@ -44,11 +44,11 @@ Stores daily Google Search Console query performance data at the URL level.
 | created_at | timestamptz | NOT NULL DEFAULT now() | Record creation timestamp |
 
 **Constraints:**
-- UNIQUE (date, lower(query_text), url)
+- UNIQUE (date, query_text, url)
 
 **Notes:**
 - `is_opportunity` is computed at import time based on PRD criteria: impressions > 1000, ctr < 0.01, avg_position BETWEEN 5 AND 15
-- Query text normalization uses `lower()` for case-insensitive uniqueness
+- Query text is normalized to lowercase by the application before insertion for consistency
 - Historical data is retained by date; dashboard typically shows latest date only
 
 ---
@@ -164,7 +164,7 @@ No custom indexes needed - managed by Supabase Auth with built-in indexes on `id
 CREATE INDEX idx_queries_pkey ON queries(id);
 
 -- Unique constraint index (automatic)
-CREATE UNIQUE INDEX idx_queries_unique_date_query_url ON queries(date, lower(query_text), url);
+CREATE UNIQUE INDEX idx_queries_unique_date_query_url ON queries(date, query_text, url);
 
 -- Performance indexes for filtering and sorting
 CREATE INDEX idx_queries_date ON queries(date DESC);
@@ -181,6 +181,7 @@ CREATE INDEX idx_queries_url ON queries(url);
 ```
 
 **Notes:**
+- Unique constraint uses plain columns (query_text already normalized to lowercase by application)
 - Trigram GIN index enables fast partial text search (requires `pg_trgm` extension)
 - Partial index on `is_opportunity` optimizes opportunity filtering
 - DESC/ASC specified based on common sort directions from PRD
@@ -271,12 +272,20 @@ CREATE POLICY "queries_insert_authenticated"
 ON queries FOR INSERT 
 TO authenticated 
 WITH CHECK (true);
+
+-- Authenticated users can update queries (for upsert during import)
+CREATE POLICY "queries_update_authenticated" 
+ON queries FOR UPDATE 
+TO authenticated 
+USING (true)
+WITH CHECK (true);
 ```
 
 **Notes:**
 - All authenticated users can read query data (shared across team)
 - All authenticated users can import queries via manual import process
-- No UPDATE or DELETE operations allowed for regular users (data immutability)
+- UPDATE policy allows upsert operations during re-import of existing data
+- No DELETE operations allowed for regular users (data immutability)
 
 ### 4.3 groups table policies
 
