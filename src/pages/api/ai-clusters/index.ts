@@ -1,6 +1,6 @@
 import type { APIRoute } from "astro";
 import type { ErrorResponse, AiClusterSuggestionDto } from "@/types";
-import { generateClusters } from "@/lib/services/ai-clusters.service";
+import { ClusterGeneratorService } from "@/lib/services/ai-clusters";
 import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "@/lib/auth/utils";
 import { OpenRouterError, OpenRouterErrorCode } from "@/lib/services/openrouter.service";
 
@@ -44,7 +44,7 @@ export const GET: APIRoute = async ({ locals }) => {
   }
 
   try {
-    const clusters = await generateClusters(locals.supabase, userId);
+    const clusters = await ClusterGeneratorService.generateClusters(locals.supabase, userId);
 
     return new Response(JSON.stringify(clusters satisfies AiClusterSuggestionDto[]), {
       status: 200,
