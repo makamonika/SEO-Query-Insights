@@ -1,7 +1,7 @@
 import type { APIRoute } from "astro";
 import type { ErrorResponse, AcceptClustersResponseDto } from "@/types";
 import { acceptClustersRequestSchema } from "@/pages/api/_schemas/aiCluster";
-import { acceptClusters } from "@/lib/services/ai-clusters.service";
+import { ClusterAcceptorService } from "@/lib/services/ai-clusters";
 import { requireUser, UnauthorizedError, buildUnauthorizedResponse } from "@/lib/auth/utils";
 
 export const prerender = false;
@@ -52,7 +52,7 @@ export const POST: APIRoute = async ({ locals, request }) => {
     }
 
     // Accept clusters and create groups
-    const groups = await acceptClusters(locals.supabase, userId, parsed.data.clusters);
+    const groups = await ClusterAcceptorService.acceptClusters(locals.supabase, userId, parsed.data.clusters);
 
     const response: AcceptClustersResponseDto = { groups };
 
