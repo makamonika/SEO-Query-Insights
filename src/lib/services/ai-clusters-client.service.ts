@@ -14,8 +14,8 @@ export const AIClustersClientService = {
     error?: string;
   }> {
     try {
-      const response = await fetch("/api/ai-clusters/generate", {
-        method: "POST",
+      const response = await fetch("/api/ai-clusters", {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
