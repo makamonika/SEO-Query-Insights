@@ -99,22 +99,24 @@ export function AddQueriesToGroupModal({
           )}
 
           {/* Queries Table - Scrollable container */}
-          <div className="flex-1 min-h-0 px-6">
-            <QueriesTable
-              rows={querySearch.availableQueries}
-              isLoading={querySearch.isLoading}
-              emptyMessage={
-                querySearch.search || querySearch.isOpportunity
-                  ? "No matching queries found"
-                  : "All queries are already in this group"
-              }
-              selected={querySearch.selected}
-              onToggleRow={querySearch.toggleRow}
-              sortBy={querySearch.sortBy}
-              order={querySearch.order}
-              onSortChange={querySearch.handleSortChange}
-              maxHeight="400px"
-            />
+          <div className="flex-1 min-h-0 px-6 overflow-y-scroll">
+            <div className="h-full">
+              <QueriesTable
+                rows={querySearch.availableQueries}
+                isLoading={querySearch.isLoading}
+                emptyMessage={
+                  querySearch.search || querySearch.isOpportunity
+                    ? "No matching queries found"
+                    : "All queries are already in this group"
+                }
+                selected={querySearch.selected}
+                onToggleRow={querySearch.toggleRow}
+                sortBy={querySearch.sortBy}
+                order={querySearch.order}
+                onSortChange={querySearch.handleSortChange}
+                height="100%"
+              />
+            </div>
           </div>
 
           <DialogFooter className="px-6 py-4 mt-4">
