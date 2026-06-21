@@ -9,6 +9,14 @@
 -- enable pg_trgm extension for trigram-based text search
 create extension if not exists pg_trgm;
 
+-- ensure postgres-owned tables in public have expected app-level privileges
+-- note: rls policies still control which rows are accessible
+alter default privileges for role postgres in schema public
+grant select, insert, update, delete on tables to authenticated;
+
+alter default privileges for role postgres in schema public
+grant select, insert, update, delete on tables to service_role;
+
 -- create queries table
 create table queries (
   id uuid primary key default gen_random_uuid(),
@@ -50,6 +58,10 @@ create index idx_queries_url on queries(url);
 -- enable row level security on queries table
 -- this ensures all access is controlled by rls policies
 alter table queries enable row level security;
+
+-- grant base table privileges required before rls policies are evaluated
+grant select, insert, update on table public.queries to authenticated;
+grant delete on table public.queries to service_role;
 
 -- rls policy: authenticated users can view all queries (shared dataset)
 -- rationale: query data is shared across the team, all authenticated users need read access
